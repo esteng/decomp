@@ -1,3 +1,5 @@
+import json
+
 class MRSWriter(object):
 
     def __init__(self, graph):
