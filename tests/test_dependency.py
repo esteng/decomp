@@ -15,11 +15,13 @@ rawtree = '''1       I       I       PRON    PRP     Case=Nom|Number=Sing|Person
 
 listtree = [l.split() for l in rawtree.split('\n')]
 
+
 def setup_tree():
     # build and extract tree
     graph = DependencyGraphBuilder().from_conll(listtree, 'tree1')
 
     return graph
+
 
 def setup_corpus():
     listtrees = {'tree1': listtree,
@@ -30,34 +32,34 @@ def setup_corpus():
     return corpus
 
 
-## could use @nose.with_setup
+# could use @nose.with_setup
 def test_dependency_tree_builder():
     tree = setup_tree()
-    
-    assert tree.name == 'tree1-syntax'
+
+    assert tree.name == 'tree1'
     assert (tree.graph['conll'] == array(listtree)).all()
 
     # test the root
     assert tree.nodes['tree1-syntax-0'] == {}
-    
+
     for idx, node in tree.nodes.items():
         for row in listtree:
             if int(row[0]) == idx:
                 assert node['form'] == row[1]
                 assert node['lemma'] == row[2]
                 assert node['upos'] == row[3]
-                assert node['xpos'] == row[4]        
+                assert node['xpos'] == row[4]
 
     for (idx1, idx2), edge in tree.edges.items():
         for row in listtree:
             if int(row[0]) == idx2:
                 assert int(row[6]) == idx1
                 assert row[7] == edge['deprel']
-        
-        
+
+
 def test_dependency_tree_corpus():
     corpus = setup_corpus()
-    
-    assert all([isinstance(t, DiGraph) for _, t in corpus.trees.items()])
-    assert all([isinstance(t, DiGraph) for _, t in corpus]) # tests iterator
-    assert list(corpus) # tests iterator reset
+
+    assert all([isinstance(t, DiGraph) for _, t in corpus.graphs.items()])
+    assert all([isinstance(t, DiGraph) for _, t in corpus])  # tests iterator
+    assert list(corpus)  # tests iterator reset

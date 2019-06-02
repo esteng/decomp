@@ -2,19 +2,19 @@ from numpy import array
 from ..corpus import Corpus
 from networkx import DiGraph
 
-conll_head = {'u': ['id', 'form', 'lemma', 'upos', 'xpos',
+CONLL_HEAD = {'u': ['id', 'form', 'lemma', 'upos', 'xpos',
                     'feats', 'head', 'deprel', 'deps', 'misc'],
               'x': ['id', 'form', 'lemma', 'cpostag', 'postag',
                     'feats', 'head', 'deprel', 'phead', 'pdeprel']}
 
-conll_node_attrs = {'u': {k: conll_head['u'].index(k)
+CONLL_NODE_ATTRS = {'u': {k: CONLL_HEAD['u'].index(k)
                           for k in ['form', 'lemma', 'upos', 'xpos', 'feats']},
-                    'x': {k: conll_head['x'].index(k)
+                    'x': {k: CONLL_HEAD['x'].index(k)
                           for k in ['form', 'lemma', 'cpostag', 'postag', 'feats']}}
 
-conll_edge_attrs = {'u': {k: conll_head['u'].index(k)
+CONLL_EDGE_ATTRS = {'u': {k: CONLL_HEAD['u'].index(k)
                           for k in ['deprel']},
-                    'x': {k: conll_head['x'].index(k)
+                    'x': {k: CONLL_HEAD['x'].index(k)
                           for k in ['deprel']}}
 
 
@@ -27,8 +27,8 @@ class CoNLLDependencyTreeCorpus(Corpus):
         trees constructed from annotated sentences
     """
 
-    def _graphbuilder(self, treeid, rawtree):
-        return DependencyGraphBuilder.from_conll(rawtree, treeid)
+    def _graphbuilder(self, graphid, rawgraph):
+        return DependencyGraphBuilder.from_conll(rawgraph, graphid)
     
 class DependencyGraphBuilder(object):
     """a dependency graph builder"""
@@ -68,7 +68,7 @@ class DependencyGraphBuilder(object):
         node_attrs = {}
         other_attrs = {}
         
-        for attr, idx in conll_node_attrs[spec].items():
+        for attr, idx in CONLL_NODE_ATTRS[spec].items():
             # convert features into a dictionary
             if attr == 'feats':
                 if row[idx] != '_':
@@ -86,8 +86,8 @@ class DependencyGraphBuilder(object):
     @staticmethod
     def _conll_edge_attrs(treeid, row, spec):
         child_id = treeid+'syntax-'+row[0]
-        parent_id = treeid+'syntax-'+row[conll_head[spec].index('head')]
-        edge_attrs = {attr: row[idx] for attr, idx in conll_edge_attrs[spec].items()}
+        parent_id = treeid+'syntax-'+row[CONLL_HEAD[spec].index('head')]
+        edge_attrs = {attr: row[idx] for attr, idx in CONLL_EDGE_ATTRS[spec].items()}
         
         return (parent_id, child_id, edge_attrs)
     
