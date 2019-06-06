@@ -39,7 +39,7 @@ class PredPattCorpus(Corpus):
         return PredPattGraphBuilder.from_predpatt(predpatt, depgraph, graphid)
 
     @classmethod
-    def from_file(cls, fpath=None, file=None, options=None, name=None):
+    def from_file(cls, fpath=None, infile=None, options=None, name=None):
         """Load a CoNLL dependency corpus and apply predpatt
 
         Parameters
@@ -54,27 +54,27 @@ class PredPattCorpus(Corpus):
             the name of the corpus; used in constructing treeids
         """
         try:
-            assert file is None or fpath is None
+            assert infile is None or fpath is None
         except AssertionError:
-            warnmsg = 'both "file" and "fpath" passed; ignoring "fpath"'
+            warnmsg = 'both "infile" and "fpath" passed; ignoring "fpath"'
             warn(warnmsg)
 
         try:
-            assert file is not None or fpath is not None
+            assert infile is not None or fpath is not None
         except AssertionError:
-            errmsg = 'must pass either "file" or "fpath"'
+            errmsg = 'must pass either "infile" or "fpath"'
             raise ValueError(errmsg)
 
-        if file is None:
+        if infile is None:
             name = basename(fpath) if name is None else name
             options = DEFAULT_PREDPATT_OPTIONS if options is None else options
 
-            with open(fpath, 'r') as file:
-                return cls._read_conllu(name, file, options)
+            with open(fpath, 'r') as infile:
+                return cls._read_conllu(name, infile, options)
 
         else:
             name = '' if name is None else name
-            return cls._read_conllu(name, file, options)
+            return cls._read_conllu(name, infile, options)
 
     @classmethod
     def _read_conllu(cls, name, infile, options):
