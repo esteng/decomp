@@ -1,121 +1,158 @@
+"""Module for serializing UDS graphs"""
+from warnings import warn
 import json
 
-class MRSWriter(object):
+class MRSWriter:
+    """Class for serializing UDS graphs to CoNLL-like MRS"""
 
     def __init__(self, graph):
         self.graph = graph
-    
-    @classmethod
-    def to_string(self):
-        mrs = {}
 
-        sem_head_nums = sorted([int(nodeid.split('-')[-1])
-                                for nodeid in self.semantics_nodes])
-        pred_head_nums = sorted([int(nodeid.split('-')[-1])
-                                 for nodeid in self.predicate_nodes])
-        arg_head_nums = sorted([int(nodeid.split('-')[-1])
-                                for nodeid in self.argument_nodes])
+        self._build_mrs()
 
-        if not pred_head_nums:
-            return []
-        
+    def _build_mrs(self):
+        self.mrs = {}
+
+        self.pred_head_nums = sorted([int(nodeid.split('-')[-1])
+                                      for nodeid
+                                      in self.graph.predicate_nodes])
+        self.arg_head_nums = sorted([int(nodeid.split('-')[-1])
+                                     for nodeid
+                                     in self.graph.argument_nodes])
+
+        if not self.pred_head_nums:
+            warn(self.graph.name + ' has no predicates')
+
         maxnodenum = 0
 
-        for synnodeid in self.syntax_nodes:
-            nodenum = int(synnodeid.split('-')[-1])
-
+        for synid in self.graph.syntax_nodes:
+            nodenum = int(synid.split('-')[-1])
             maxnodenum = max(nodenum, maxnodenum)
-            
-            ispredhead = nodenum in pred_head_nums
-            isarghead = nodenum in arg_head_nums
-            
-            semnodeid_pred = self.name+'-semantics-pred-'+synnodeid.split('-')[-1]
-            semnodeid_arg = self.name+'-semantics-arg-'+synnodeid.split('-')[-1]
-                
+
             if nodenum > 0:
-                synnode = self.graph.nodes[synnodeid]
-                mrs[nodenum] = [synnode[k]
-                                for k in ['form', 'lemma', 'xpos']]
+                self._add_syntax(synid, nodenum)
+                self._add_root_indicator(synid, nodenum)
+                ispredhead, isarghead = self._add_pred_indicator(nodenum)
+                semid_arg = self._add_node_semantics(synid,
+                                                     nodenum,
+                                                     ispredhead,
+                                                     isarghead)
+                self._add_edge_semantics(semid_arg, nodenum)
 
-                # add root indicator
-                if (self.synroot, synnodeid) in self.graph.edges:
-                    mrs[nodenum].append('+')
-                else:
-                    mrs[nodenum].append('-')
+        self._attach_orphans_to_root()
 
-                # add pred indicator
-                if ispredhead:
-                    mrs[nodenum].append('+')
-                else:
-                    mrs[nodenum].append('-')
+        self.maxnodenum = maxnodenum
 
-                # add node info where frame info would be
-                nodeinfo = {}
-                
-                if ispredhead and isarghead:
-                    semnode_arg = self.graph.nodes[semnodeid_arg]
-                    semnode_pred = self.graph.nodes[semnodeid_pred]
+    def _add_syntax(self, synid, nodenum):
+        synnode = self.graph.nodes[synid]
+        self.mrs[nodenum] = [synnode[k]
+                             for k
+                             in ['form', 'lemma', 'xpos']]
 
-                    nodeinfo = dict({k: v
-                                     for k, v in semnode_arg.items()
-                                     if k not in ['frompredpatt', 'id']},
-                                    **{k: v
-                                       for k, v in semnode_pred.items()
-                                       if k not in ['frompredpatt', 'id']})
-                    
-                elif ispredhead:
-                    semnode_pred = self.graph.nodes[semnodeid_pred]
+    def _add_root_indicator(self, synid, nodenum):
+        if (self.graph.synroot, synid) in self.graph.edges:
+            self.mrs[nodenum].append('+')
+        else:
+            self.mrs[nodenum].append('-')
 
-                    nodeinfo = {k: v
-                                for k, v in semnode_pred.items()
-                                if k not in ['frompredpatt', 'id']}
+    def _add_pred_indicator(self, nodenum):
+        ispredhead = nodenum in self.pred_head_nums
+        isarghead = nodenum in self.arg_head_nums
 
-                elif isarghead:
-                    semnode_arg = self.graph.nodes[semnodeid_arg]
-                    
-                    nodeinfo = {k: v
-                                for k, v in semnode_arg.items()
-                                if k not in ['frompredpatt', 'id']}
+        if ispredhead:
+            self.mrs[nodenum].append('+')
+        else:
+            self.mrs[nodenum].append('-')
 
-                if nodeinfo:
-                    mrs[nodenum].append(json.dumps(nodeinfo))
-                else:
-                    mrs[nodenum].append('_')
+        return ispredhead, isarghead
 
-                # add edge attributes                
-                for prednum in pred_head_nums:
-                    edgeinfo = {}                    
-                    semparentid = self.name+'-semantics-pred-'+str(prednum)                        
+    def _add_node_semantics(self, synid, nodenum, ispredhead, isarghead):
+        nodeinfo = {}
 
-                    if (semparentid, semnodeid_arg) in self.graph.edges:
-                        semedge = self.graph.edges[(semparentid, semnodeid_arg)]
+        semid_pred = self.graph.name +\
+                     '-semantics-pred-' +\
+                     synid.split('-')[-1]
+        semid_arg = self.graph.name +\
+                    '-semantics-arg-' +\
+                    synid.split('-')[-1]
 
-                        edgeinfo = {k: v
-                                    for k, v in semedge.items()
-                                    if k not in ['frompredpatt', 'id']}
-                        
-                    if edgeinfo:
-                        edgeinfo = json.dumps(edgeinfo)
+        if ispredhead and isarghead:
+            semnode_arg = self.graph.nodes[semid_arg]
+            semnode_pred = self.graph.nodes[semid_pred]
 
-                        mrs[nodenum].append(edgeinfo)
-                    else:
-                        mrs[nodenum].append('_')
+            nodeinfo = dict({k: v
+                             for k, v in semnode_arg.items()
+                             if k not in ['frompredpatt', 'id']},
+                            **{k: v
+                               for k, v in semnode_pred.items()
+                               if k not in ['frompredpatt', 'id']})
 
-        # attach nodes to root if they don't already have a parent
-        isroot = {i: l[4]=='+' for i, l in mrs.items()}
-        
+        elif ispredhead:
+            semnode_pred = self.graph.nodes[semid_pred]
+
+            nodeinfo = {k: v
+                        for k, v in semnode_pred.items()
+                        if k not in ['frompredpatt', 'id']}
+
+        elif isarghead:
+            semnode_arg = self.graph.nodes[semid_arg]
+
+            nodeinfo = {k: v
+                        for k, v in semnode_arg.items()
+                        if k not in ['frompredpatt', 'id']}
+
+        if nodeinfo:
+            self.mrs[nodenum].append(json.dumps(nodeinfo))
+        else:
+            self.mrs[nodenum].append('_')
+
+        return semid_arg
+
+    def _add_edge_semantics(self, semid_arg, nodenum):
+        for prednum in self.pred_head_nums:
+            edgeinfo = {}
+            semparentid = self.graph.name +\
+                          '-semantics-pred-' +\
+                          str(prednum)
+
+            if (semparentid, semid_arg) in self.graph.edges:
+                semedge = self.graph.edges[(semparentid, semid_arg)]
+
+                edgeinfo = {k: v
+                            for k, v in semedge.items()
+                            if k not in ['frompredpatt', 'id']}
+
+            if edgeinfo:
+                edgeinfo = json.dumps(edgeinfo)
+
+                self.mrs[nodenum].append(edgeinfo)
+            else:
+                self.mrs[nodenum].append('_')
+
+    def _attach_orphans_to_root(self):
+        isroot = {i: l[4] == '+' for i, l in self.mrs.items()}
+
         try:
-            assert sum(isroot.values())==1
+            assert sum(isroot.values()) == 1
         except AssertionError:
-            errmsg = uds_graph.name+' has multiple roots'
+            errmsg = self.graph.name + ' has multiple roots'
             ValueError(errmsg)
-                        
-        rootrelnum = [pred_head_nums.index(i) for i, v in isroot.items() if v][0]
 
-        for i, line in mrs.items():
+        rootrelnum = [self.pred_head_nums.index(i)
+                      for i, v in isroot.items() if v][0]
+
+        for i, line in self.mrs.items():
             # if this is a predicate and there are no other relations
-            if line[4]=='+' and all([elem=='_' for elem in line[6:]]):
+            if line[4] == '+' and all([elem == '_' for elem in line[6:]]):
                 # add a "parallel" (nonsubordinating) relation to the root
-                mrs[i][6+rootrelnum] = json.dumps({'semrel': 'parallel'})
-        
-        return [[str(i)]+mrs[i] for i in range(1, maxnodenum+1)]
+                self.mrs[i][6+rootrelnum] = json.dumps({'semrel': 'parallel'})
+
+    def to_list(self):
+        """Convert UDS graph to CoNLL-like MRS list"""
+
+        return [[str(i)]+self.mrs[i] for i in range(1, self.maxnodenum+1)]
+
+    def to_string(self):
+        """Convert UDS graph to CoNLL-like MRS string"""
+
+        return '\n'.join(['\t'.join(line) for line in self.to_list()])
