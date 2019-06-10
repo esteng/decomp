@@ -162,7 +162,13 @@ class PredPattGraphBuilder:
         # this is done to distinguish them from nodes added through annotations
         for node in predpattgraph.nodes:
             if 'semantics' in node:
+                predpattgraph.nodes[node]['type'] = 'semantics'
                 predpattgraph.nodes[node]['frompredpatt'] = 'true'
+
+                if 'arg' in node:
+                    predpattgraph.nodes[node]['subtype'] = 'arg'
+                elif 'pred' in node:
+                    predpattgraph.nodes[node]['subtype'] = 'pred'
 
         return predpattgraph
 

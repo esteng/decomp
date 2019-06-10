@@ -75,7 +75,7 @@ class DependencyGraphBuilder:
     def _conll_node_attrs(treeid, row, spec):
         node_id = row[0]
 
-        node_attrs = {}
+        node_attrs = {'type': 'syntax'}
         other_attrs = {}
 
         for attr, idx in CONLL_NODE_ATTRS[spec].items():

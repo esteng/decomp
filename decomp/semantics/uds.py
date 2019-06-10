@@ -240,7 +240,9 @@ class UDSGraph:
 
         # if it doesn't, add it
         if self.semroot not in self.graph.nodes:
-            self.graph.add_node(self.semroot)
+            self.graph.add_node(self.semroot,
+                                {'type': 'semantics',
+                                 'subtype': 'root'})
             self.graph.add_edge(self.semroot, self.synroot)
 
             edges = [(self.semroot, childid)
