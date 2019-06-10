@@ -6,6 +6,11 @@ import json
 class MRSWriter:
     """Class for serializing UDS graphs to CoNLL-like MRS
 
+    Because the MRS format cannot natively handle anything beyond
+    simple predicate-argument relations, this class filters any nodes
+    not returned from PredPatt--e.g. subpredicate and subargument
+    relations.
+
     Parameters
     ----------
     graph : decomp.semantics.UDSGraph
