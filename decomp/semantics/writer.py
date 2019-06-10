@@ -2,8 +2,28 @@
 from warnings import warn
 import json
 
+
 class MRSWriter:
-    """Class for serializing UDS graphs to CoNLL-like MRS"""
+    """Class for serializing UDS graphs to CoNLL-like MRS
+
+    Parameters
+    ----------
+    graph : decomp.semantics.UDSGraph
+        UDS graph to serialize to MRS
+
+    Attributes
+    ----------
+    graph : decomp.semantics.UDSGraph
+
+    Methods
+    -------
+    to_list
+    to_string
+
+    Raises
+    ------
+    ValueError
+    """
 
     def __init__(self, graph):
         self.graph = graph
@@ -136,7 +156,7 @@ class MRSWriter:
             assert sum(isroot.values()) == 1
         except AssertionError:
             errmsg = self.graph.name + ' has multiple roots'
-            ValueError(errmsg)
+            raise ValueError(errmsg)
 
         rootrelnum = [self.pred_head_nums.index(i)
                       for i, v in isroot.items() if v][0]
