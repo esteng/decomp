@@ -51,7 +51,7 @@ def setup_graph():
 
 def setup_corpus():
     rawfile = StringIO(rawtree)
-    return PredPattCorpus.from_file(f=rawfile)
+    return PredPattCorpus.from_file(infile=rawfile)
 
 ## could use @nose.with_setup
 def test_predpatt_graph_builder():
@@ -90,6 +90,32 @@ def test_predpatt_graph_builder():
                 for nodeid in pp_graph.nodes
                 if 'semantics' in nodeid])
 
+    assert all(['type' in pp_graph.nodes[nodeid]
+                for nodeid in pp_graph.nodes
+                if 'semantics' in nodeid])
+
+    assert all([pp_graph.nodes[nodeid]['type'] == 'semantics'
+                for nodeid in pp_graph.nodes
+                if 'semantics' in nodeid])
+
+    assert all(['subtype' in pp_graph.nodes[nodeid]
+                for nodeid in pp_graph.nodes
+                if 'semantics' in nodeid])
+
+    assert all([pp_graph.nodes[nodeid]['subtype'] in ['arg', 'pred']
+                for nodeid in pp_graph.nodes
+                if 'semantics' in nodeid])
+
+    assert all([('arg' in nodeid) ==
+                (pp_graph.nodes[nodeid]['subtype'] == 'arg')
+                for nodeid in pp_graph.nodes
+                if 'semantics' in nodeid])
+
+    assert all([('pred' in nodeid) ==
+                (pp_graph.nodes[nodeid]['subtype'] == 'pred')
+                for nodeid in pp_graph.nodes
+                if 'semantics' in nodeid])
+
     assert all(['arg' not in nodeid and 'pred' not in nodeid
                 for nodeid in pp_graph.nodes
                 if 'syntax' in nodeid])
@@ -105,7 +131,7 @@ def test_predpatt_graph_builder():
     # tests subpredicate edges
     subprededge = ('tree1-semantics-arg-11', 'tree1-semantics-pred-11')
     assert pp_graph.edges[subprededge]['semrel'] == 'subpred'
-    
+
     assert all([(nodeid2, nodeid1) in pp_graph.edges and
                 pp_graph.edges[(nodeid2, nodeid1)]['semrel'] == 'subpred'
                 for nodeid1, node1 in pp_graph.nodes.items()
