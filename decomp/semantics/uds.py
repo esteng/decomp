@@ -168,6 +168,9 @@ class UDSGraph:
         self.name = name
         self.graph = graph
 
+        self.nodes = self.graph.nodes
+        self.edges = self.graph.edges
+
         self._add_root()
 
     @property
@@ -241,8 +244,8 @@ class UDSGraph:
         # if it doesn't, add it
         if self.semroot not in self.graph.nodes:
             self.graph.add_node(self.semroot,
-                                {'type': 'semantics',
-                                 'subtype': 'root'})
+                                type='semantics',
+                                subtype='root')
             self.graph.add_edge(self.semroot, self.synroot)
 
             edges = [(self.semroot, childid)
@@ -382,6 +385,12 @@ class UDSAnnotation:
                                         for edge, a in attrs.items()
                                         if '_' in edge}
                                 for gname, attrs in self.annotation.items()}
+
+    def __getitem__(self, k):
+        node_attrs = self.node_attributes[k]
+        edge_attrs = self.edge_attributes[k]
+
+        return node_attrs, edge_attrs
 
     def items(self):
         """Dictionary-like items generator for attributes

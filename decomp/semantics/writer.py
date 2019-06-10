@@ -155,7 +155,7 @@ class MRSWriter:
                 self.mrs[nodenum].append('_')
 
     def _attach_orphans_to_root(self):
-        isroot = {i: l[4] == '+' for i, l in self.mrs.items()}
+        isroot = {i: l[3] == '+' for i, l in self.mrs.items()}
 
         try:
             assert sum(isroot.values()) == 1
