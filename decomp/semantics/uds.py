@@ -1,11 +1,12 @@
 # pylint: disable=W0102
+# pylint: disable=W0221
 # pylint: disable=W0231
 # pylint: disable=C0103
 """Module for containing representing UDS graphs"""
 
 import json
 
-from warnings import warn
+from logging import info, warning
 from networkx import adjacency_data, adjacency_graph
 from .predpatt import PredPattCorpus
 from .writer import MRSWriter
@@ -77,7 +78,7 @@ class UDSCorpus(PredPattCorpus):
                     mrs = graph.to_mrs()
                 except ValueError:
                     warnmsg = 'could not write ' + name + ' to MRS'
-                    warn(warnmsg)
+                    warning(warnmsg)
                     continue
 
                 if mrs:
@@ -103,7 +104,7 @@ class UDSCorpus(PredPattCorpus):
             corpus name to be used in graph ids
         """
 
-        predpatt_corpus = PredPattCorpus.from_file(corpus_fpath, name=name)
+        predpatt_corpus = PredPattCorpus.from_conll(corpus_fpath, name=name)
         annotations = [UDSAnnotation.from_json(ann_fpath)
                        for ann_fpath in annotation_fpaths]
 
@@ -297,8 +298,8 @@ class UDSGraph:
         elif 'subargof' in attrs:
             edge = (attrs['subargof'], node)
 
-            warnmsg = 'adding subarg edge ' + edge + ' to ' + self.name
-            warn(warnmsg)
+            infomsg = 'adding subarg edge ' + str(edge) + ' to ' + self.name
+            info(infomsg)
 
             attrs['frompredpatt'] = 'false'
 
@@ -317,8 +318,8 @@ class UDSGraph:
         elif 'subpredof' in attrs:
             edge = (attrs['subpredof'], node)
 
-            warnmsg = 'adding subpred edge ' + edge + ' to ' + self.name
-            warn(warnmsg)
+            infomsg = 'adding subpred edge ' + str(edge) + ' to ' + self.name
+            info(infomsg)
 
             attrs['frompredpatt'] = 'false'
 
@@ -336,7 +337,7 @@ class UDSGraph:
 
         else:
             warnmsg = 'adding orphan node ' + node + ' in ' + self.name
-            warn(warnmsg)
+            warning(warnmsg)
 
             attrs['frompredpatt'] = 'false'
 
@@ -358,8 +359,8 @@ class UDSGraph:
         if edge in self.graph.edges:
             self.graph.edges[edge].update(attrs)
         else:
-            warnmsg = 'adding unlabeled edge ' + edge + ' to ' + self.name
-            warn(warnmsg)
+            warnmsg = 'adding unlabeled edge ' + str(edge) + ' to ' + self.name
+            warning(warnmsg)
             self.graph.add_edges_from([(edge[0], edge[1], attrs)])
 
 

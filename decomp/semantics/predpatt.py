@@ -4,7 +4,6 @@
 """Module for converting PredPatt objects to networkx digraphs"""
 
 from os.path import basename
-from warnings import warn
 from networkx import DiGraph
 from predpatt import load_conllu, PredPatt, PredPattOpts
 from ..corpus import Corpus
@@ -39,41 +38,23 @@ class PredPattCorpus(Corpus):
         return PredPattGraphBuilder.from_predpatt(predpatt, depgraph, graphid)
 
     @classmethod
-    def from_file(cls, fpath=None, infile=None, options=None, name=None):
+    def from_conll(cls, fpath, options=None, name=None):
         """Load a CoNLL dependency corpus and apply predpatt
 
         Parameters
         ----------
         fpath : str
             the path to a .conll(u) file
-        file : file-like
-            a .conll(u) file opened in read mode
         options : PredPattOpts
             options for predpatt extraction
         name : str
             the name of the corpus; used in constructing treeids
         """
-        try:
-            assert infile is None or fpath is None
-        except AssertionError:
-            warnmsg = 'both "infile" and "fpath" passed; ignoring "fpath"'
-            warn(warnmsg)
 
-        try:
-            assert infile is not None or fpath is not None
-        except AssertionError:
-            errmsg = 'must pass either "infile" or "fpath"'
-            raise ValueError(errmsg)
+        name = basename(fpath) if name is None else name
+        options = DEFAULT_PREDPATT_OPTIONS if options is None else options
 
-        if infile is None:
-            name = basename(fpath) if name is None else name
-            options = DEFAULT_PREDPATT_OPTIONS if options is None else options
-
-            with open(fpath, 'r') as infile:
-                return cls._read_conllu(name, infile, options)
-
-        else:
-            name = '' if name is None else name
+        with open(fpath, 'r') as infile:
             return cls._read_conllu(name, infile, options)
 
     @classmethod

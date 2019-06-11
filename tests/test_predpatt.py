@@ -49,9 +49,9 @@ def setup_graph():
     
     return pp, graph
 
-def setup_corpus():
-    rawfile = StringIO(rawtree)
-    return PredPattCorpus.from_file(infile=rawfile)
+# def setup_corpus():
+#     rawfile = StringIO(rawtree)
+#     return PredPattCorpus.from_file(infile=rawfile)
 
 ## could use @nose.with_setup
 def test_predpatt_graph_builder():
@@ -140,9 +140,9 @@ def test_predpatt_graph_builder():
                 if 'semantics-arg' in nodeid2
                 if nodeid1.split('-')[-1] == nodeid2.split('-')[-1]])
     
-def test_predpatt_corpus():
-    corpus = setup_corpus()
+# def test_predpatt_corpus():
+#     corpus = setup_corpus()
     
-    assert all([isinstance(t, DiGraph) for _, t in corpus.graphs.items()])
-    assert all([isinstance(t, DiGraph) for _, t in corpus]) # tests iterator
-    assert list(corpus) # tests iterator reset
+#     assert all([isinstance(t, DiGraph) for _, t in corpus.graphs.items()])
+#     assert all([isinstance(t, DiGraph) for _, t in corpus]) # tests iterator
+#     assert list(corpus) # tests iterator reset
