@@ -1,6 +1,5 @@
 import logging
 from os.path import basename
-from glob import glob
 from decomp.semantics.uds import UDSCorpus
 
 logging.basicConfig(level=logging.INFO)
@@ -40,7 +39,3 @@ for fname, corpus in uds.items():
 for fname, corpus in uds.items():
     split = fname.strip('.conllu').split('-')[2]
     uds[fname].to_mrs('../data/uds-ewt-'+split+'.mrs')
-
-# reload UDS from JSON
-uds = {basename(fpath): UDSCorpus.from_json(fpath)
-       for fpath in glob('../data/uds-ewt-*.json')}
