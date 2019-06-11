@@ -1,5 +1,5 @@
 """Module for serializing UDS graphs"""
-from warnings import warn
+from logging import warning
 import json
 
 
@@ -46,7 +46,7 @@ class MRSWriter:
                                      in self.graph.argument_nodes])
 
         if not self.pred_head_nums:
-            warn(self.graph.name + ' has no predicates')
+            warning(self.graph.name + ' has no predicates')
 
         maxnodenum = 0
 
