@@ -215,19 +215,20 @@ class UDSGraph:
         for k, val in keep.items():
             if isinstance(val, list):
                 for i, elem in enumerate(val):
-                    val[i] = lambda x: x == elem
+                    if not isinstance(elem, function):
+                        val[i] = (lambda e: lambda x: x == e)(elem)
 
                 keep[k] = val
 
             else:
-                keep[k] = lambda x: x == val
+                keep[k] = [(lambda v: lambda x: x == v)(val)]
 
         return {ident: attr
                 for ident, attr
                 in data.items()
-                if all(f(attr[k])
-                       for k, f
-                       in keep.items())}
+                if all(k in attr and f(attr[k])
+                       for k, fs in keep.items()
+                       for f in fs)}
 
     @property
     def sentence(self):
@@ -252,14 +253,14 @@ class UDSGraph:
         """The predicate (semantics) nodes in the graph"""
 
         return self.filter_nodes({'type': 'semantics',
-                                  'subtype': 'predicate'})
+                                  'subtype': 'pred'})
 
     @property
     def argument_nodes(self):
         """The argument (semantics) nodes in the graph"""
 
         return self.filter_nodes({'type': 'semantics',
-                                  'subtype': 'argument'})
+                                  'subtype': 'arg'})
 
     @property
     def syntax_subgraph(self):
@@ -321,7 +322,7 @@ class UDSGraph:
 
             attrs = dict(attrs,
                          **{'type': 'semantics',
-                            'subtype': 'argument',
+                            'subtype': 'arg',
                             'frompredpatt': 'false'})
 
             self.graph.add_node(node,
@@ -341,7 +342,7 @@ class UDSGraph:
 
             attrs = dict(attrs,
                          **{'type': 'semantics',
-                            'subtype': 'predicate',
+                            'subtype': 'pred',
                             'frompredpatt': 'false'})
 
             self.graph.add_node(node,
@@ -360,7 +361,7 @@ class UDSGraph:
 
             attrs = dict(attrs,
                          **{'type': 'semantics',
-                            'subtype': 'predicate',
+                            'subtype': 'pred',
                             'frompredpatt': 'false'})
 
             self.graph.add_node(node,
