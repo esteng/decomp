@@ -1,6 +1,8 @@
 # pylint: disable=W0102
+# pylint: disable=W0212
 # pylint: disable=W0221
 # pylint: disable=W0231
+# pylint: disable=W0640
 # pylint: disable=C0103
 """Module for containing representing UDS graphs"""
 
@@ -155,8 +157,7 @@ class UDSGraph:
     ----------
     name : str
     graph : networkx.DiGraph
-    synroot : str
-    semroot : str
+    rootid : str
     syntax_nodes : list(str)
     semantics_nodes : list(str)
     predicate_nodes : list(str)
@@ -172,88 +173,106 @@ class UDSGraph:
         self.nodes = self.graph.nodes
         self.edges = self.graph.edges
 
-        self._add_root()
+        self.rootid = list(self.filter_nodes({'type': 'root'}))[0]
+
+    def filter_nodes(self, keep):
+        """Filter nodes satisfying keep and not satisfying reject
+
+        Parameters
+        ----------
+        keep : dict(str, str | list(str | object -> bool))
+            a mapping from node attributes to lists of characteristic
+            functions on the values of those attributes; if a node is
+            true on all of these characteristic functions, it will be
+            kept
+
+        Returns
+        -------
+        dict(str, dict(str, object))
+        """
+
+        return self.__class__._filter(self.graph.nodes, keep)
+
+    def filter_edges(self, keep):
+        """Filter nodes satisfying keep and not satisfying reject
+
+        Parameters
+        ----------
+        keep : dict(str, object | list(object | object -> bool))
+            a mapping from edge attributes to lists of characteristic
+            functions on the values of those attributes; if an edge is
+            true on all of these characteristic functions, it will be
+            kept
+
+        Returns
+        -------
+        dict(str, dict(str, object))
+        """
+
+        return self.__class__._filter(self.graph.edges, keep)
+
+    @staticmethod
+    def _filter(data, keep):
+        for k, val in keep.items():
+            if isinstance(val, list):
+                for i, elem in enumerate(val):
+                    val[i] = lambda x: x == elem
+
+                keep[k] = val
+
+            else:
+                keep[k] = lambda x: x == val
+
+        return {ident: attr
+                for ident, attr
+                in data.items()
+                if all(f(attr[k])
+                       for k, f
+                       in keep.items())}
 
     @property
     def sentence(self):
         """The sentence the graph annotates"""
 
-        id_word = {int(nodeid.split('-')[-1]): self.graph.nodes[nodeid]['form']
-                   for nodeid in self.syntax_nodes
-                   if int(nodeid.split('-')[-1]) > 0}
-        sentence = [id_word[i] for i in range(1, max(list(id_word.keys()))+1)]
-
-        return ' '.join(sentence)
+        return self.graph.nodes[self.rootid]['sentence']
 
     @property
     def syntax_nodes(self):
         """The syntax nodes in the graph"""
 
-        return [node
-                for node in self.graph.nodes
-                if 'syntax' in node]
+        return self.filter_nodes({'type': 'syntax'})
 
     @property
     def semantics_nodes(self):
         """The semantics nodes in the graph"""
 
-        return [node
-                for node in self.graph.nodes
-                if 'semantics' in node]
+        return self.filter_nodes({'type': 'semantics'})
 
     @property
     def predicate_nodes(self):
         """The predicate (semantics) nodes in the graph"""
 
-        return [node
-                for node in self.graph.nodes
-                if 'semantics-pred' in node]
+        return self.filter_nodes({'type': 'semantics',
+                                  'subtype': 'predicate'})
 
     @property
     def argument_nodes(self):
         """The argument (semantics) nodes in the graph"""
 
-        return [node
-                for node in self.graph.nodes
-                if 'semantics-arg' in node]
+        return self.filter_nodes({'type': 'semantics',
+                                  'subtype': 'argument'})
 
     @property
     def syntax_subgraph(self):
         """The part of the graph with only syntax nodes"""
 
-        return self.graph.subgraph(self.syntax_nodes)
+        return self.graph.subgraph(list(self.syntax_nodes.keys()))
 
     @property
     def semantics_subgraph(self):
         """The part of the graph with only semantics nodes"""
 
-        return self.graph.subgraph(self.semantics_nodes)
-
-    def _add_root(self):
-        # the graph should have a dummy syntax root
-        self.synroot = self.name+'-syntax-0'
-
-        try:
-            assert self.synroot in self.syntax_nodes
-        except AssertionError:
-            errmsg = 'no syntax root found in '+self.name
-            raise ValueError(errmsg)
-
-        # the graph may or may not have a semantics root
-        self.semroot = self.name+'-semantics-root-0'
-
-        # if it doesn't, add it
-        if self.semroot not in self.graph.nodes:
-            self.graph.add_node(self.semroot,
-                                type='semantics',
-                                subtype='root')
-            self.graph.add_edge(self.semroot, self.synroot)
-
-            edges = [(self.semroot, childid)
-                     for childid in self.predicate_nodes]
-            self.graph.add_edges_from(edges)
-
-        self.root = self.semroot
+        return self.graph.subgraph(list(self.semantics_nodes.keys()))
 
     def to_mrs(self):
         """CoNLL-like MRS-formatted parse"""
@@ -295,65 +314,68 @@ class UDSGraph:
         if node in self.graph.nodes:
             self.graph.nodes[node].update(attrs)
 
-        elif 'subargof' in attrs:
+        elif 'subargof' in attrs and attrs['subargof'] in self.graph.nodes:
             edge = (attrs['subargof'], node)
 
             infomsg = 'adding subarg edge ' + str(edge) + ' to ' + self.name
             info(infomsg)
 
-            attrs['frompredpatt'] = 'false'
+            attrs = dict(attrs,
+                         **{'type': 'semantics',
+                            'subtype': 'argument',
+                            'frompredpatt': 'false'})
 
-            self.graph.add_node(node)
-            self.graph.nodes[node].update({k: v
-                                           for k, v in attrs.items()
-                                           if k != 'subargof'})
-
-            self.graph.add_edge(*edge)
-            self.graph.edges[edge].update({'semrel': 'subarg'})
+            self.graph.add_node(node,
+                                **{k: v
+                                   for k, v in attrs.items()
+                                   if k != 'subargof'})
+            self.graph.add_edge(*edge, semrel='subarg')
 
             instedge = (node, node.replace('semantics-subarg', 'syntax'))
-            self.graph.add_edge(*instedge)
-            self.graph.edges[instedge].update({'instantiation': 'head'})
+            self.graph.add_edge(*instedge, instantiation='head')
 
-        elif 'subpredof' in attrs:
+        elif 'subpredof' in attrs and attrs['subpredof'] in self.graph.nodes:
             edge = (attrs['subpredof'], node)
 
             infomsg = 'adding subpred edge ' + str(edge) + ' to ' + self.name
             info(infomsg)
 
-            attrs['frompredpatt'] = 'false'
+            attrs = dict(attrs,
+                         **{'type': 'semantics',
+                            'subtype': 'predicate',
+                            'frompredpatt': 'false'})
 
-            self.graph.add_node(node)
-            self.graph.nodes[node].update({k: v
-                                           for k, v in attrs.items()
-                                           if k != 'subpredof'})
+            self.graph.add_node(node,
+                                **{k: v
+                                   for k, v in attrs.items()
+                                   if k != 'subpredof'})
 
-            self.graph.add_edge(*edge)
-            self.graph.edges[edge].update({'semrel': 'subpred'})
+            self.graph.add_edge(*edge, semrel='subpred')
 
             instedge = (node, node.replace('semantics-subpred', 'syntax'))
-            self.graph.add_edge(*instedge)
-            self.graph.edges[instedge].update({'instantiation': 'head'})
+            self.graph.add_edge(*instedge, instantiation='head')
 
         else:
             warnmsg = 'adding orphan node ' + node + ' in ' + self.name
             warning(warnmsg)
 
-            attrs['frompredpatt'] = 'false'
+            attrs = dict(attrs,
+                         **{'type': 'semantics',
+                            'subtype': 'predicate',
+                            'frompredpatt': 'false'})
 
-            self.graph.add_node(node)
-            self.graph.nodes[node].update({k: v
-                                           for k, v in attrs.items()
-                                           if k != 'subpredof'})
+            self.graph.add_node(node,
+                                **{k: v
+                                   for k, v in attrs.items()
+                                   if k != 'subpredof'})
 
             synnode = node.replace('semantics-pred', 'syntax')
             synnode = synnode.replace('semantics-arg', 'syntax')
             instedge = (node, synnode)
-            self.graph.add_edge(*instedge)
-            self.graph.edges[instedge].update({'instantiation': 'head'})
+            self.graph.add_edge(*instedge, instantiation='head')
 
-            if self.root is not None:
-                self.graph.add_edge(self.root, node)
+            if self.rootid is not None:
+                self.graph.add_edge(self.rootid, node)
 
     def _add_edge_annotation(self, edge, attrs):
         if edge in self.graph.edges:

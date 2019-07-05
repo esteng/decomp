@@ -13,6 +13,8 @@ rawtree = '''1       I       I       PRON    PRP     Case=Nom|Number=Sing|Person
 9       this    this    PRON    DT      Number=Sing|PronType=Dem        8       obj     _       SpaceAfter=No
 10      .       .       PUNCT   .       _       4       punct   _       _'''
 
+sentence = "I ca n't imagine they wanted to do this ."
+
 listtree = [l.split() for l in rawtree.split('\n')]
 
 
@@ -39,8 +41,12 @@ def test_dependency_tree_builder():
     assert tree.name == 'tree1'
     assert (tree.graph['conll'] == array(listtree)).all()
 
+    print(tree.nodes['tree1-root-0'])
     # test the root
-    assert tree.nodes['tree1-syntax-0'] == {}
+    # test syntax nodes
+    assert tree.nodes['tree1-root-0'] == {'id': 0,
+                                          'type': 'root',
+                                          'sentence': sentence}
 
     for idx, node in tree.nodes.items():
         for row in listtree:

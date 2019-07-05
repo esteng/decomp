@@ -34,6 +34,8 @@ rawtree = '''1	The	the	DET	DT	Definite=Def|PronType=Art	3	det	_	_
 28	kidnappings	kidnapping	NOUN	NNS	Number=Plur	26	nmod	_	SpaceAfter=No
 29	.	.	PUNCT	.	_	7	punct	_	_'''
 
+sentence = 'The police commander of Ninevah Province announced that bombings had declined 80 percent in Mosul , whereas there had been a big jump in the number of kidnappings .'
+
 listtree = [l.split() for l in rawtree.split('\n')]
 
 def setup_graph():
@@ -62,7 +64,9 @@ def test_predpatt_graph_builder():
                 for nodeid in pp_graph.nodes])
     
     # test syntax nodes
-    assert pp_graph.nodes['tree1-syntax-0'] == {}
+    assert pp_graph.nodes['tree1-root-0'] == {'id': 0,
+                                              'type': 'root',
+                                              'sentence': sentence}
     
     for idx, node in pp_graph.nodes.items():
         if 'syntax' in idx:
