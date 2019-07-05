@@ -34,8 +34,3 @@ uds = {fname: UDSCorpus.from_conll('../data/UD_English-r1.2/'+fname,
 for fname, corpus in uds.items():
     split = fname.strip('.conllu').split('-')[2]
     uds[fname].to_json('../data/uds-ewt-'+split+'.json')
-
-# dump to MRS
-for fname, corpus in uds.items():
-    split = fname.strip('.conllu').split('-')[2]
-    uds[fname].to_mrs('../data/uds-ewt-'+split+'.mrs')

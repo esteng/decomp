@@ -11,7 +11,6 @@ import json
 from logging import info, warning
 from networkx import adjacency_data, adjacency_graph
 from .predpatt import PredPattCorpus
-from .writer import MRSWriter
 
 
 class UDSCorpus(PredPattCorpus):
@@ -65,32 +64,32 @@ class UDSCorpus(PredPattCorpus):
 
         return json.dumps(graphs_serializable)
 
-    def to_mrs(self, fpath):
-        """Serialize corpus to CoNLL-like MRS
+    # def to_mrs(self, fpath):
+    #     """Serialize corpus to CoNLL-like MRS
 
-        Parameters
-        ----------
-        fpath : str
-            path to file to write corpus to
-        """
+    #     Parameters
+    #     ----------
+    #     fpath : str
+    #         path to file to write corpus to
+    #     """
 
-        with open(fpath, 'w') as f:
-            for name, graph in self.graphs.items():
-                try:
-                    mrs = graph.to_mrs()
-                except ValueError:
-                    warnmsg = 'could not write ' + name + ' to MRS'
-                    warning(warnmsg)
-                    continue
+    #     with open(fpath, 'w') as f:
+    #         for name, graph in self.graphs.items():
+    #             try:
+    #                 mrs = graph.to_mrs()
+    #             except ValueError:
+    #                 warnmsg = 'could not write ' + name + ' to MRS'
+    #                 warning(warnmsg)
+    #                 continue
 
-                if mrs:
-                    f.write('# sent-id: '+name+'\n')
-                    f.write('# sentence: '+graph.sentence+'\n')
+    #             if mrs:
+    #                 f.write('# sent-id: '+name+'\n')
+    #                 f.write('# sentence: '+graph.sentence+'\n')
 
-                    for line in mrs:
-                        f.write('\t'.join(line)+'\n')
+    #                 for line in mrs:
+    #                     f.write('\t'.join(line)+'\n')
 
-                    f.write('\n')
+    #                 f.write('\n')
 
     @classmethod
     def from_conll(cls, corpus_fpath, annotation_fpaths=[], name=None):
@@ -274,10 +273,10 @@ class UDSGraph:
 
         return self.graph.subgraph(list(self.semantics_nodes.keys()))
 
-    def to_mrs(self):
-        """CoNLL-like MRS-formatted parse"""
+    # def to_mrs(self):
+    #     """CoNLL-like MRS-formatted parse"""
 
-        return MRSWriter(self).to_string()
+    #     return MRSWriter(self).to_string()
 
     def to_dict(self):
         """Convert the graph to a dictionary"""
