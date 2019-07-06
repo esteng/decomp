@@ -338,7 +338,19 @@ class UDSGraph:
                     and self.nodes[e[1]]['type'] == 'syntax')}
 
     def span(self, nodeid):
-        """The span corresponding to a semantics node"""
+        """The span corresponding to a semantics node
+
+        Parameters
+        ----------
+        nodeid : str
+            the node identifier for a semantics node
+
+        Returns
+        -------
+        dict(int, str)
+            a mapping from positions in the span to words in those
+            positions
+        """
 
         if self.nodes[nodeid]['type'] != 'semantics':
             errmsg = 'Only semantics nodes have (nontrivial) spans'
@@ -348,7 +360,18 @@ class UDSGraph:
                 for e in self.syntax_semantics_edges(nodeid)}
 
     def head(self, nodeid):
-        """The head corresponding to a semantics node"""
+        """The head corresponding to a semantics node
+
+        Parameters
+        ----------
+        nodeid : str
+            the node identifier for a semantics node
+
+        Returns
+        -------
+        tuple(int, str)
+            a pairing of the head position and head word
+        """
 
         if self.nodes[nodeid]['type'] != 'semantics':
             errmsg = 'Only semantics nodes have heads'
