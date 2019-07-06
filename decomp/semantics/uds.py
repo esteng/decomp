@@ -174,30 +174,20 @@ class UDSGraph:
 
         self.rootid = list(self.filter_nodes({'type': 'root'}))[0]
 
-    def filter_nodes(self, keep):
-        """Filter nodes satisfying keep and not satisfying reject
+    def filter_nodes(self, node_attrs, edge_attrs={}):
+        """Filter nodes by their attributes and those of the adjacent edges
+
+        TODO: include a flag so that the matching edge may be retained
 
         Parameters
         ----------
-        keep : dict(str, str | list(str | object -> bool))
+        node_attrs : dict(str, object | list(object | object -> bool))
             a mapping from node attributes to lists of characteristic
-            functions on the values of those attributes; if a node is
+            functions on the values of those attributes; if an edge is
             true on all of these characteristic functions, it will be
             kept
 
-        Returns
-        -------
-        dict(str, dict(str, object))
-        """
-
-        return self.__class__._filter(self.graph.nodes, keep)
-
-    def filter_edges(self, keep):
-        """Filter nodes satisfying keep and not satisfying reject
-
-        Parameters
-        ----------
-        keep : dict(str, object | list(object | object -> bool))
+        edge_attrs : dict(str, object | list(object | object -> bool))
             a mapping from edge attributes to lists of characteristic
             functions on the values of those attributes; if an edge is
             true on all of these characteristic functions, it will be
@@ -208,27 +198,76 @@ class UDSGraph:
         dict(str, dict(str, object))
         """
 
-        return self.__class__._filter(self.graph.edges, keep)
+        node_attrs = self.__class__._preprocess_filter_attrs(node_attrs)
+        edge_attrs = self.__class__._preprocess_filter_attrs(edge_attrs)
+
+        return {ident: attr
+                for ident, attr
+                in self.nodes.items()
+                if all(k in attr and f(attr[k])
+                       for k, fs in node_attrs.items()
+                       for f in fs)
+                if any(all(k in eattr and f(eattr[k])
+                           for k, fs in edge_attrs.items()
+                           for f in fs)
+                       for eid, eattr in self.semantics_edges(ident).items())
+                or not edge_attrs}
+
+    def filter_edges(self, node_attrs, edge_attrs):
+        """Filter edges by their attributes and those of the adjacent nodes
+
+        TODO: include a flag so that the matching node may be retained
+
+        Parameters
+        ----------
+        node_attrs : dict(str, object | list(object | object -> bool))
+            a mapping from edge attributes to lists of characteristic
+            functions on the values of those attributes; if an edge is
+            true on all of these characteristic functions, it will be
+            kept
+
+        edge_attrs : dict(str, object | list(object | object -> bool))
+            a mapping from edge attributes to lists of characteristic
+            functions on the values of those attributes; if an edge is
+            true on all of these characteristic functions, it will be
+            kept
+
+        Returns
+        -------
+        dict(str, dict(str, object))
+        """
+
+        node_attrs = self.__class__._preprocess_filter_attrs(node_attrs)
+        edge_attrs = self.__class__._preprocess_filter_attrs(edge_attrs)
+
+        return {ident: attr
+                for ident, attr
+                in self.edges.items()
+                if all(k in attr and f(attr[k])
+                       for k, fs in edge_attrs.items()
+                       for f in fs)
+                if any(all(k in self.nodes[n] and f(self.nodes[n][k])
+                           for k, fs in node_attrs.items()
+                           for f in fs)
+                       for n in ident) or not node_attrs}
 
     @staticmethod
-    def _filter(data, keep):
+    def _preprocess_filter_attrs(keep):
         for k, val in keep.items():
             if isinstance(val, list):
                 for i, elem in enumerate(val):
-                    if not isinstance(elem, function):
+                    if not callable(elem):
                         val[i] = (lambda e: lambda x: x == e)(elem)
 
                 keep[k] = val
 
+            elif callable(val):
+                keep[k] = [val]
+
             else:
                 keep[k] = [(lambda v: lambda x: x == v)(val)]
 
-        return {ident: attr
-                for ident, attr
-                in data.items()
-                if all(k in attr and f(attr[k])
-                       for k, fs in keep.items()
-                       for f in fs)}
+        return keep
 
     @property
     def sentence(self):
@@ -273,6 +312,51 @@ class UDSGraph:
         """The part of the graph with only semantics nodes"""
 
         return self.graph.subgraph(list(self.semantics_nodes.keys()))
+
+    def semantics_edges(self, nodeid):
+        """The edges between semantics nodes"""
+        edges = list(self.graph.in_edges(nodeid)) +\
+                list(self.graph.out_edges(nodeid))
+
+        return {e: self.edges[e] for e in edges
+                if 'type' in self.nodes[e[0]]
+                if 'type' in self.nodes[e[1]]
+                if self.nodes[e[0]]['type'] == 'semantics'
+                if self.nodes[e[1]]['type'] == 'semantics'}
+
+    def syntax_semantics_edges(self, nodeid):
+        """The edges between syntax nodes and semantics nodes"""
+        edges = list(self.graph.in_edges(nodeid)) +\
+                list(self.graph.out_edges(nodeid))
+
+        return {e: self.edges[e] for e in edges
+                if 'type' in self.nodes[e[0]]
+                if 'type' in self.nodes[e[1]]
+                if (self.nodes[e[0]]['type'] == 'semantics'
+                    and self.nodes[e[1]]['type'] == 'syntax')
+                or (self.nodes[e[0]]['type'] == 'semantics'
+                    and self.nodes[e[1]]['type'] == 'syntax')}
+
+    def span(self, nodeid):
+        """The span corresponding to a semantics node"""
+
+        if self.nodes[nodeid]['type'] != 'semantics':
+            errmsg = 'Only semantics nodes have (nontrivial) spans'
+            raise ValueError(errmsg)
+
+        return {self.nodes[e[1]]['position']: self.nodes[e[1]]['form']
+                for e in self.syntax_semantics_edges(nodeid)}
+
+    def head(self, nodeid):
+        """The head corresponding to a semantics node"""
+
+        if self.nodes[nodeid]['type'] != 'semantics':
+            errmsg = 'Only semantics nodes have heads'
+            raise ValueError(errmsg)
+
+        return [(self.nodes[e[1]]['position'], self.nodes[e[1]]['form'])
+                for e, attr in self.syntax_semantics_edges(nodeid).items()
+                if attr['instantiation'] == 'head'][0]
 
     # def to_mrs(self):
     #     """CoNLL-like MRS-formatted parse"""

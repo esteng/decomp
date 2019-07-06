@@ -64,7 +64,7 @@ def test_predpatt_graph_builder():
                 for nodeid in pp_graph.nodes])
     
     # test syntax nodes
-    assert pp_graph.nodes['tree1-root-0'] == {'id': 0,
+    assert pp_graph.nodes['tree1-root-0'] == {'position': 0,
                                               'type': 'root',
                                               'sentence': sentence}
     

@@ -69,12 +69,12 @@ class DependencyGraphBuilder:
                                  for row in conll])
 
         # add root node attributes
-        id_word = {nodeattr['id']-1: nodeattr['form']
+        id_word = {nodeattr['position']-1: nodeattr['form']
                    for nodeid, nodeattr in depgraph.nodes.items()}
         sentence = [id_word[i] for i in range(max(list(id_word.keys()))+1)]
 
         depgraph.add_node(treeid+'root-0',
-                          id=0,
+                          position=0,
                           type='root',
                           sentence=' '.join(sentence))
 
@@ -89,7 +89,7 @@ class DependencyGraphBuilder:
         node_id = row[0]
 
         node_attrs = {'type': 'syntax',
-                      'id': int(node_id)}
+                      'position': int(node_id)}
         other_attrs = {}
 
         for attr, idx in CONLL_NODE_ATTRS[spec].items():
