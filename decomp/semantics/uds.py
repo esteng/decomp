@@ -9,8 +9,50 @@
 import json
 
 from logging import info, warning
+from functools import lru_cache
+from memoized_property import memoized_property
+from pyparsing import ParseException
+from rdflib.plugins.sparql import prepareQuery
 from networkx import adjacency_data, adjacency_graph
 from .predpatt import PredPattCorpus
+from ..rdf import RDFConverter
+
+ROOT_QUERY = prepareQuery("""
+                          SELECT ?n
+                          WHERE { ?n <type> ?val
+                                  FILTER regex(?val, "root")
+                                }""")
+SYNTAX_NODES_QUERY = prepareQuery("""
+                                  SELECT ?n
+                                  WHERE { ?n <type> ?t
+                                          FILTER regex(?t, "syntax")
+                                        }
+                                  """)
+
+SEMANTICS_NODES_QUERY = prepareQuery("""
+                                     SELECT ?n
+                                     WHERE { ?n <type> ?t
+                                             FILTER regex(?t, "semantics")
+                                           }
+                                     """)
+
+PREDICATE_NODES_QUERY = prepareQuery("""
+                                     SELECT ?n
+                                     WHERE { ?n <type> ?t
+                                             FILTER regex(?t, "semantics") .
+                                             ?n <subtype> ?st
+                                             FILTER regex(?st, "pred")
+                                           }
+                                     """)
+
+ARGUMENT_NODES_QUERY = prepareQuery("""
+                                    SELECT ?n
+                                    WHERE { ?n <type> ?t
+                                            FILTER regex(?t, "semantics") .
+                                            ?n <subtype> ?st
+                                            FILTER regex(?st, "arg")
+                                          }
+                                    """)
 
 
 class UDSCorpus(PredPattCorpus):
@@ -172,134 +214,176 @@ class UDSGraph:
         self.nodes = self.graph.nodes
         self.edges = self.graph.edges
 
-        self.rootid = list(self.filter_nodes({'type': 'root'}))[0]
+    @memoized_property
+    def rdf(self):
+        """The graph as RDF"""
 
-    def filter_nodes(self, node_attrs, edge_attrs={}):
-        """Filter nodes by their attributes and those of the adjacent edges
+        return RDFConverter.networkx_to_rdf(self.graph)
 
-        TODO: include a flag so that the matching edge may be retained
+    @memoized_property
+    def rootid(self):
+        """The ID of the graph's root node"""
+        return self.query(ROOT_QUERY)[0][0]
 
-        Parameters
-        ----------
-        node_attrs : dict(str, object | list(object | object -> bool))
-            a mapping from node attributes to lists of characteristic
-            functions on the values of those attributes; if an edge is
-            true on all of these characteristic functions, it will be
-            kept
-
-        edge_attrs : dict(str, object | list(object | object -> bool))
-            a mapping from edge attributes to lists of characteristic
-            functions on the values of those attributes; if an edge is
-            true on all of these characteristic functions, it will be
-            kept
-
-        Returns
-        -------
-        dict(str, dict(str, object))
-        """
-
-        node_attrs = self.__class__._preprocess_filter_attrs(node_attrs)
-        edge_attrs = self.__class__._preprocess_filter_attrs(edge_attrs)
-
-        return {ident: attr
-                for ident, attr
-                in self.nodes.items()
-                if all(k in attr and f(attr[k])
-                       for k, fs in node_attrs.items()
-                       for f in fs)
-                if any(all(k in eattr and f(eattr[k])
-                           for k, fs in edge_attrs.items()
-                           for f in fs)
-                       for eid, eattr in self.semantics_edges(ident).items())
-                or not edge_attrs}
-
-    def filter_edges(self, node_attrs, edge_attrs):
-        """Filter edges by their attributes and those of the adjacent nodes
-
-        TODO: include a flag so that the matching node may be retained
+    def query(self, query):
+        """Query graph using SPARQL 1.1 SELECT
 
         Parameters
         ----------
-        node_attrs : dict(str, object | list(object | object -> bool))
-            a mapping from edge attributes to lists of characteristic
-            functions on the values of those attributes; if an edge is
-            true on all of these characteristic functions, it will be
-            kept
-
-        edge_attrs : dict(str, object | list(object | object -> bool))
-            a mapping from edge attributes to lists of characteristic
-            functions on the values of those attributes; if an edge is
-            true on all of these characteristic functions, it will be
-            kept
+        query : str | rdflib.plugins.sparql.sparql.Query
+            a SPARQL 1.1 SELECT query
 
         Returns
         -------
-        dict(str, dict(str, object))
+        list(tuple)
         """
 
-        node_attrs = self.__class__._preprocess_filter_attrs(node_attrs)
-        edge_attrs = self.__class__._preprocess_filter_attrs(edge_attrs)
+        try:
+            results = self.rdf.query(query)
+        except ParseException:
+            errmsg = 'invalid SPARQL 1.1 query'
+            raise ValueError(errmsg)
 
-        return {ident: attr
-                for ident, attr
-                in self.edges.items()
-                if all(k in attr and f(attr[k])
-                       for k, fs in edge_attrs.items()
-                       for f in fs)
-                if any(all(k in self.nodes[n] and f(self.nodes[n][k])
-                           for k, fs in node_attrs.items()
-                           for f in fs)
-                       for n in ident) or not node_attrs}
+        return [tuple([elem.toPython()
+                       for elem in res])
+                for res in results]
 
-    @staticmethod
-    def _preprocess_filter_attrs(keep):
-        for k, val in keep.items():
-            if isinstance(val, list):
-                for i, elem in enumerate(val):
-                    if not callable(elem):
-                        val[i] = (lambda e: lambda x: x == e)(elem)
+    def _node_query(self, query):
+        results = [r[0] for r in self.query(query)]
 
-                keep[k] = val
+        return {nodeid: self.nodes[nodeid] for nodeid in results}
 
-            elif callable(val):
-                keep[k] = [val]
+    def _edge_query(self, query):
+        return {edge: self.edges[edge] for edge in self.query(query)}
 
-            else:
-                keep[k] = [(lambda v: lambda x: x == v)(val)]
-
-        return keep
-
-    @property
+    @memoized_property
     def sentence(self):
         """The sentence the graph annotates"""
 
         return self.graph.nodes[self.rootid]['sentence']
 
-    @property
+    @memoized_property
     def syntax_nodes(self):
         """The syntax nodes in the graph"""
 
-        return self.filter_nodes({'type': 'syntax'})
+        return self._node_query(SYNTAX_NODES_QUERY)
 
-    @property
+    @memoized_property
     def semantics_nodes(self):
         """The semantics nodes in the graph"""
 
-        return self.filter_nodes({'type': 'semantics'})
+        return self._node_query(SEMANTICS_NODES_QUERY)
 
-    @property
+    @memoized_property
     def predicate_nodes(self):
         """The predicate (semantics) nodes in the graph"""
 
-        return self.filter_nodes({'type': 'semantics',
-                                  'subtype': 'pred'})
+        return self._node_query(PREDICATE_NODES_QUERY)
 
-    @property
+    @memoized_property
     def argument_nodes(self):
         """The argument (semantics) nodes in the graph"""
 
-        return self.filter_nodes({'type': 'semantics',
-                                  'subtype': 'arg'})
+        return self._node_query(ARGUMENT_NODES_QUERY)
+
+    @lru_cache(maxsize=128)
+    def semantics_edges(self, nodeid=None):
+        """The edges between semantics nodes"""
+
+        if nodeid is None:
+            querystr = """
+                       SELECT DISTINCT ?n1 ?n2
+                       WHERE { ?n1 ?e ?n2 .
+                               ?n1 <type> ?val1
+                               FILTER regex(?val1, "semantics") .
+                               ?n2 <type> ?val2
+                               FILTER regex(?val2, "semantics")
+                             }
+                       """
+        else:
+            querystr = '''
+                       SELECT DISTINCT ?n1 ?n2
+                       WHERE { ?n1 ?e ?n2 .
+                               { ?n1 <id> ?id
+                                 FILTER regex(?id, "'''+nodeid+'''") .
+                               } UNION
+                               { ?n2 <id> ?id
+                                 FILTER regex(?id, "'''+nodeid+'''") .
+                               }
+                               ?n1 <type> ?val1
+                               FILTER regex(?val1, "semantics") .
+                               ?n2 <type> ?val2
+                               FILTER regex(?val2, "semantics")
+                             }
+                       '''
+
+        return self._edge_query(querystr)
+
+    @lru_cache(maxsize=128)
+    def syntax_edges(self, nodeid=None):
+        """The edges between semantics nodes"""
+
+        if nodeid is None:
+            querystr = """
+                       SELECT DISTINCT ?n1 ?n2
+                       WHERE { ?n1 ?e ?n2 .
+                               ?n1 <type> ?val1
+                               FILTER regex(?val1, "syntax") .
+                               ?n2 <type> ?val2
+                               FILTER regex(?val2, "syntax")
+                             }
+                       """
+        else:
+            querystr = '''
+                       SELECT DISTINCT ?n1 ?n2
+                       WHERE { ?n1 ?e ?n2 .
+                               { ?n1 <id> ?id
+                                 FILTER regex(?id, "'''+nodeid+'''") .
+                               } UNION
+                               { ?n2 <id> ?id
+                                 FILTER regex(?id, "'''+nodeid+'''") .
+                               }
+                               ?n1 <type> ?val1
+                               FILTER regex(?val1, "syntax") .
+                               ?n2 <type> ?val2
+                               FILTER regex(?val2, "syntax")
+                             }
+                       '''
+
+        return self._edge_query(querystr)
+
+    @lru_cache(maxsize=128)
+    def semantics_syntax_edges(self, nodeid=None):
+        """The edges between syntax nodes and semantics nodes"""
+
+        if nodeid is None:
+            querystr = """
+                       SELECT DISTINCT ?n1 ?n2
+                       WHERE { ?n1 ?e ?n2 .
+                               ?n1 <type> ?val1
+                               FILTER regex(?val1, "syntax") .
+                               ?n2 <type> ?val2
+                               FILTER regex(?val2, "syntax")
+                             }
+                       """
+        else:
+            querystr = '''
+                       SELECT DISTINCT ?n1 ?n2
+                       WHERE { ?n1 ?e ?n2 .
+                               { ?n1 <id> ?id
+                                 FILTER regex(?id, "'''+nodeid+'''") .
+                               } UNION
+                               { ?n2 <id> ?id
+                                 FILTER regex(?id, "'''+nodeid+'''") .
+                               }
+                               ?n1 <type> ?val1
+                               FILTER regex(?val1, "semantics") .
+                               ?n2 <type> ?val2
+                               FILTER regex(?val2, "syntax")
+                             }
+                       '''
+
+        return self._edge_query(querystr)
 
     @property
     def syntax_subgraph(self):
@@ -313,72 +397,55 @@ class UDSGraph:
 
         return self.graph.subgraph(list(self.semantics_nodes.keys()))
 
-    def semantics_edges(self, nodeid):
-        """The edges between semantics nodes"""
-        edges = list(self.graph.in_edges(nodeid)) +\
-                list(self.graph.out_edges(nodeid))
-
-        return {e: self.edges[e] for e in edges
-                if 'type' in self.nodes[e[0]]
-                if 'type' in self.nodes[e[1]]
-                if self.nodes[e[0]]['type'] == 'semantics'
-                if self.nodes[e[1]]['type'] == 'semantics'}
-
-    def syntax_semantics_edges(self, nodeid):
-        """The edges between syntax nodes and semantics nodes"""
-        edges = list(self.graph.in_edges(nodeid)) +\
-                list(self.graph.out_edges(nodeid))
-
-        return {e: self.edges[e] for e in edges
-                if 'type' in self.nodes[e[0]]
-                if 'type' in self.nodes[e[1]]
-                if (self.nodes[e[0]]['type'] == 'semantics'
-                    and self.nodes[e[1]]['type'] == 'syntax')
-                or (self.nodes[e[0]]['type'] == 'semantics'
-                    and self.nodes[e[1]]['type'] == 'syntax')}
-
-    def span(self, nodeid):
+    def span(self, nodeid, attrs=['form']):
         """The span corresponding to a semantics node
 
         Parameters
         ----------
         nodeid : str
             the node identifier for a semantics node
+        attrs : list(str)
+            a list of syntax node attributes to return
 
         Returns
         -------
-        dict(int, str)
-            a mapping from positions in the span to words in those
-            positions
+        dict(int, list)
+            a mapping from positions in the span to the requested
+            attributes in those positions
         """
 
         if self.nodes[nodeid]['type'] != 'semantics':
             errmsg = 'Only semantics nodes have (nontrivial) spans'
             raise ValueError(errmsg)
 
-        return {self.nodes[e[1]]['position']: self.nodes[e[1]]['form']
-                for e in self.syntax_semantics_edges(nodeid)}
+        return {self.nodes[e[1]]['position']: [self.nodes[e[1]][a]
+                                               for a in attrs]
+                for e in self.semantics_syntax_edges(nodeid)}
 
-    def head(self, nodeid):
+    def head(self, nodeid, attrs=['form']):
         """The head corresponding to a semantics node
 
         Parameters
         ----------
         nodeid : str
             the node identifier for a semantics node
+        attrs : list(str)
+            a list of syntax node attributes to return
 
         Returns
         -------
-        tuple(int, str)
-            a pairing of the head position and head word
+        tuple(int, list)
+            a pairing of the head position and the requested
+            attributes
         """
 
         if self.nodes[nodeid]['type'] != 'semantics':
             errmsg = 'Only semantics nodes have heads'
             raise ValueError(errmsg)
 
-        return [(self.nodes[e[1]]['position'], self.nodes[e[1]]['form'])
-                for e, attr in self.syntax_semantics_edges(nodeid).items()
+        return [(self.nodes[e[1]]['position'],
+                 [self.nodes[e[1]][a] for a in attrs])
+                for e, attr in self.semantics_syntax_edges(nodeid).items()
                 if attr['instantiation'] == 'head'][0]
 
     # def to_mrs(self):
