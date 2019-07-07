@@ -225,6 +225,7 @@ class UDSGraph:
         """The ID of the graph's root node"""
         return self.query(ROOT_QUERY)[0][0]
 
+    @lru_cache(maxsize=128)
     def query(self, query):
         """Query graph using SPARQL 1.1 SELECT
 
