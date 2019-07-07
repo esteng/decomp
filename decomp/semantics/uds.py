@@ -19,38 +19,32 @@ from ..rdf import RDFConverter
 
 ROOT_QUERY = prepareQuery("""
                           SELECT ?n
-                          WHERE { ?n <type> ?val
-                                  FILTER regex(?val, "root")
-                                }""")
+                          WHERE { ?n <type> "root" .
+                                }
+                          """)
 SYNTAX_NODES_QUERY = prepareQuery("""
                                   SELECT ?n
-                                  WHERE { ?n <type> ?t
-                                          FILTER regex(?t, "syntax")
+                                  WHERE { ?n <type> "syntax" .
                                         }
                                   """)
 
 SEMANTICS_NODES_QUERY = prepareQuery("""
                                      SELECT ?n
-                                     WHERE { ?n <type> ?t
-                                             FILTER regex(?t, "semantics")
+                                     WHERE { ?n <type> "semantics" .
                                            }
                                      """)
 
 PREDICATE_NODES_QUERY = prepareQuery("""
                                      SELECT ?n
-                                     WHERE { ?n <type> ?t
-                                             FILTER regex(?t, "semantics") .
-                                             ?n <subtype> ?st
-                                             FILTER regex(?st, "pred")
+                                     WHERE { ?n <type> "semantics" .
+                                             ?n <subtype> "pred" .
                                            }
                                      """)
 
 ARGUMENT_NODES_QUERY = prepareQuery("""
                                     SELECT ?n
-                                    WHERE { ?n <type> ?t
-                                            FILTER regex(?t, "semantics") .
-                                            ?n <subtype> ?st
-                                            FILTER regex(?st, "arg")
+                                    WHERE { ?n <type> "semantics" .
+                                            ?n <subtype> "arg" .
                                           }
                                     """)
 
@@ -295,26 +289,20 @@ class UDSGraph:
             querystr = """
                        SELECT DISTINCT ?n1 ?n2
                        WHERE { ?n1 ?e ?n2 .
-                               ?n1 <type> ?val1
-                               FILTER regex(?val1, "semantics") .
-                               ?n2 <type> ?val2
-                               FILTER regex(?val2, "semantics")
+                               ?n1 <type> "semantics" .
+                               ?n2 <type> "semantics" .
                              }
                        """
         else:
             querystr = '''
                        SELECT DISTINCT ?n1 ?n2
                        WHERE { ?n1 ?e ?n2 .
-                               { ?n1 <id> ?id
-                                 FILTER regex(?id, "'''+nodeid+'''") .
+                               { ?n1 <id> ?id "'''+nodeid+'''" .
                                } UNION
-                               { ?n2 <id> ?id
-                                 FILTER regex(?id, "'''+nodeid+'''") .
+                               { ?n2 <id> "'''+nodeid+'''" .
                                }
-                               ?n1 <type> ?val1
-                               FILTER regex(?val1, "semantics") .
-                               ?n2 <type> ?val2
-                               FILTER regex(?val2, "semantics")
+                               ?n1 <type> "semantics" .
+                               ?n2 <type> "semantics" .
                              }
                        '''
 
@@ -328,26 +316,20 @@ class UDSGraph:
             querystr = """
                        SELECT DISTINCT ?n1 ?n2
                        WHERE { ?n1 ?e ?n2 .
-                               ?n1 <type> ?val1
-                               FILTER regex(?val1, "syntax") .
-                               ?n2 <type> ?val2
-                               FILTER regex(?val2, "syntax")
+                               ?n1 <type> "syntax" .
+                               ?n2 <type> "syntax" .
                              }
                        """
         else:
             querystr = '''
                        SELECT DISTINCT ?n1 ?n2
                        WHERE { ?n1 ?e ?n2 .
-                               { ?n1 <id> ?id
-                                 FILTER regex(?id, "'''+nodeid+'''") .
+                               { ?n1 <id> "'''+nodeid+'''" .
                                } UNION
-                               { ?n2 <id> ?id
-                                 FILTER regex(?id, "'''+nodeid+'''") .
+                               { ?n2 <id> "'''+nodeid+'''" .
                                }
-                               ?n1 <type> ?val1
-                               FILTER regex(?val1, "syntax") .
-                               ?n2 <type> ?val2
-                               FILTER regex(?val2, "syntax")
+                               ?n1 <type> "syntax" .
+                               ?n2 <type> "syntax" .
                              }
                        '''
 
@@ -361,26 +343,20 @@ class UDSGraph:
             querystr = """
                        SELECT DISTINCT ?n1 ?n2
                        WHERE { ?n1 ?e ?n2 .
-                               ?n1 <type> ?val1
-                               FILTER regex(?val1, "syntax") .
-                               ?n2 <type> ?val2
-                               FILTER regex(?val2, "syntax")
+                               ?n1 <type> "semantics" .
+                               ?n2 <type> "syntax" .
                              }
                        """
         else:
             querystr = '''
                        SELECT DISTINCT ?n1 ?n2
                        WHERE { ?n1 ?e ?n2 .
-                               { ?n1 <id> ?id
-                                 FILTER regex(?id, "'''+nodeid+'''") .
+                               { ?n1 <id> "'''+nodeid+'''" .
                                } UNION
-                               { ?n2 <id> ?id
-                                 FILTER regex(?id, "'''+nodeid+'''") .
+                               { ?n2 <id> "'''+nodeid+'''" .
                                }
-                               ?n1 <type> ?val1
-                               FILTER regex(?val1, "semantics") .
-                               ?n2 <type> ?val2
-                               FILTER regex(?val2, "syntax")
+                               ?n1 <type> "semantics" .
+                               ?n2 <type> "syntax" .
                              }
                        '''
 
