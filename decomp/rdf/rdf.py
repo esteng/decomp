@@ -8,6 +8,7 @@ class RDFConverter:
     NODES = {}
     EDGES = {}
     PROPERTIES = {}
+    VALUES = {}
 
     def __init__(self, nxgraph):
         self.nxgraph = nxgraph
@@ -26,12 +27,11 @@ class RDFConverter:
                 converter.add_node_attributes(nodeid2)
                 converter.add_edge_attributes(nodeid1, nodeid2, properties)
 
+        cls._reset_attributes()
+
         return converter.rdfgraph
 
     def add_node_attributes(self, nodeid):
-        triple = self.__class__._construct_property(nodeid, 'id', nodeid)
-        self.rdfgraph.add(triple)
-
         for propid, val in self.nxgraph.nodes[nodeid].items():
             triple = self.__class__._construct_property(nodeid, propid, val)
             self.rdfgraph.add(triple)
@@ -70,9 +70,23 @@ class RDFConverter:
         if nodeid not in cls.NODES:
             cls.NODES[nodeid] = URIRef(nodeid)
 
-        if propid not in cls.PROPERTIES:
+        if propid not in cls.NODES:
             cls.PROPERTIES[propid] = URIRef(propid)
 
-        return (cls.NODES[nodeid],
-                cls.PROPERTIES[propid],
-                Literal(val))
+        if propid in ['type', 'subtype']:
+            if val not in cls.VALUES:
+                cls.VALUES[val] = URIRef(val)
+
+            return (cls.NODES[nodeid],
+                    cls.PROPERTIES[propid],
+                    cls.VALUES[val])
+
+        else:
+            return (cls.NODES[nodeid],
+                    cls.PROPERTIES[propid],
+                    Literal(val))
+
+    @classmethod
+    def _reset_attributes(cls):
+        cls.NODES = {}
+        cls.EDGES = {}

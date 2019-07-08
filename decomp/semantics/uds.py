@@ -19,32 +19,32 @@ from ..rdf import RDFConverter
 
 ROOT_QUERY = prepareQuery("""
                           SELECT ?n
-                          WHERE { ?n <type> "root" .
+                          WHERE { ?n <type> <root> .
                                 }
                           """)
 SYNTAX_NODES_QUERY = prepareQuery("""
                                   SELECT ?n
-                                  WHERE { ?n <type> "syntax" .
+                                  WHERE { ?n <type> <syntax> .
                                         }
                                   """)
 
 SEMANTICS_NODES_QUERY = prepareQuery("""
                                      SELECT ?n
-                                     WHERE { ?n <type> "semantics" .
+                                     WHERE { ?n <type> <semantics> .
                                            }
                                      """)
 
 PREDICATE_NODES_QUERY = prepareQuery("""
                                      SELECT ?n
-                                     WHERE { ?n <type> "semantics" .
-                                             ?n <subtype> "pred" .
+                                     WHERE { ?n <type> <semantics> .
+                                             ?n <subtype> <pred> .
                                            }
                                      """)
 
 ARGUMENT_NODES_QUERY = prepareQuery("""
                                     SELECT ?n
-                                    WHERE { ?n <type> "semantics" .
-                                            ?n <subtype> "arg" .
+                                    WHERE { ?n <type> <semantics> .
+                                            ?n <subtype> <arg> .
                                           }
                                     """)
 
@@ -188,15 +188,28 @@ class UDSGraph:
     graph : networkx.DiGraph
     name : str, optional
 
+    Methods
+    -------
+    query : str -> list(list(object))
+    semantics_edges : str -> dict(tuple(str, str), dict(str, object))
+    semantics_syntax_edges : str -> dict(tuple(str, str), dict(str, object))
+    syntax_edges : str -> dict(tuple(str, str), dict(str, object))
+    span : (str, list(str)) -> dict(int, list)
+    head : (str, list(str)) -> tuple(int, list)
+    to_dict : () -> dict
+    add_annotation : (dict(str, object), dict(str, object)) -> None
+
     Attributes
     ----------
     name : str
     graph : networkx.DiGraph
     rootid : str
-    syntax_nodes : list(str)
-    semantics_nodes : list(str)
-    predicate_nodes : list(str)
-    argument_nodes : list(str)
+    rdf : rdflib.Graph
+    sentence : str
+    syntax_nodes : dict(str, dict(str, object))
+    semantics_nodes : dict(str, dict(str, object))
+    predicate_nodes : dict(str, dict(str, object))
+    argument_nodes : dict(str, dict(str, object))
     syntax_subgraph : networkx.DiGraph
     semantics_subgraph : networkx.DiGraph
     """
@@ -249,7 +262,11 @@ class UDSGraph:
         return {nodeid: self.nodes[nodeid] for nodeid in results}
 
     def _edge_query(self, query):
-        return {edge: self.edges[edge] for edge in self.query(query)}
+        results = [tuple(edge[0].split('%%'))
+                   for edge in self.query(query)]
+
+        return {edge: self.edges[edge]
+                for edge in results}
 
     @memoized_property
     def sentence(self):
@@ -287,24 +304,23 @@ class UDSGraph:
 
         if nodeid is None:
             querystr = """
-                       SELECT DISTINCT ?n1 ?n2
+                       SELECT ?e
                        WHERE { ?n1 ?e ?n2 .
-                               ?n1 <type> "semantics" .
-                               ?n2 <type> "semantics" .
+                               ?n1 <type> <semantics> .
+                               ?n2 <type> <semantics> .
                              }
                        """
         else:
-            querystr = '''
-                       SELECT DISTINCT ?n1 ?n2
-                       WHERE { ?n1 ?e ?n2 .
-                               { ?n1 <id> ?id "'''+nodeid+'''" .
+            querystr = """
+                       SELECT ?e
+                       WHERE { { <"""+nodeid+"""> ?e ?n1 .
                                } UNION
-                               { ?n2 <id> "'''+nodeid+'''" .
+                               { ?n1 ?e <"""+nodeid+"""> .
                                }
-                               ?n1 <type> "semantics" .
-                               ?n2 <type> "semantics" .
+                               <"""+nodeid+"""> <type> <semantics> .
+                               ?n1 <type> <semantics> .
                              }
-                       '''
+                       """
 
         return self._edge_query(querystr)
 
@@ -314,24 +330,23 @@ class UDSGraph:
 
         if nodeid is None:
             querystr = """
-                       SELECT DISTINCT ?n1 ?n2
+                       SELECT ?e
                        WHERE { ?n1 ?e ?n2 .
-                               ?n1 <type> "syntax" .
-                               ?n2 <type> "syntax" .
+                               ?n1 <type> <syntax> .
+                               ?n2 <type> <syntax> .
                              }
                        """
         else:
-            querystr = '''
-                       SELECT DISTINCT ?n1 ?n2
-                       WHERE { ?n1 ?e ?n2 .
-                               { ?n1 <id> "'''+nodeid+'''" .
+            querystr = """
+                       SELECT ?e
+                       WHERE { { <"""+nodeid+"""> ?e ?n1 .
                                } UNION
-                               { ?n2 <id> "'''+nodeid+'''" .
+                               { ?n1 ?e <"""+nodeid+"""> .
                                }
-                               ?n1 <type> "syntax" .
-                               ?n2 <type> "syntax" .
+                               <"""+nodeid+"""> <type> <syntax> .
+                               ?n1 <type> <syntax> .
                              }
-                       '''
+                       """
 
         return self._edge_query(querystr)
 
@@ -341,24 +356,25 @@ class UDSGraph:
 
         if nodeid is None:
             querystr = """
-                       SELECT DISTINCT ?n1 ?n2
+                       SELECT ?e
                        WHERE { ?n1 ?e ?n2 .
-                               ?n1 <type> "semantics" .
-                               ?n2 <type> "syntax" .
+                               ?n1 <type> <semantics> .
+                               ?n2 <type> <syntax> .
                              }
                        """
         else:
-            querystr = '''
-                       SELECT DISTINCT ?n1 ?n2
-                       WHERE { ?n1 ?e ?n2 .
-                               { ?n1 <id> "'''+nodeid+'''" .
+            querystr = """
+                       SELECT ?e
+                       WHERE { { <"""+nodeid+"""> ?e ?n1 .
+                                 <"""+nodeid+"""> <type> <semantics> .
+                                 ?n1 <type> <syntax> .
                                } UNION
-                               { ?n2 <id> "'''+nodeid+'''" .
+                               { ?n1 ?e <"""+nodeid+"""> .
+                                 ?n1 <type> <semantics> .
+                                 <"""+nodeid+"""> <type> <syntax> .
                                }
-                               ?n1 <type> "semantics" .
-                               ?n2 <type> "syntax" .
                              }
-                       '''
+                       """
 
         return self._edge_query(querystr)
 
@@ -424,11 +440,6 @@ class UDSGraph:
                  [self.nodes[e[1]][a] for a in attrs])
                 for e, attr in self.semantics_syntax_edges(nodeid).items()
                 if attr['instantiation'] == 'head'][0]
-
-    # def to_mrs(self):
-    #     """CoNLL-like MRS-formatted parse"""
-
-    #     return MRSWriter(self).to_string()
 
     def to_dict(self):
         """Convert the graph to a dictionary"""
