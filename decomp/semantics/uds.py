@@ -590,7 +590,9 @@ class UDSGraph:
                                    if k != 'subpredof'})
 
             synnode = node.replace('semantics-pred', 'syntax')
-            synnode = synnode.replace('semantics-arg', 'syntax')
+            synnode = synnode.replace('semantics-arg', 'syntax')            
+            synnode = synnode.replace('semantics-subpred', 'syntax')
+            synnode = synnode.replace('semantics-subarg', 'syntax')
             instedge = (node, synnode)
             self.graph.add_edge(*instedge, type='instance', subtype='head')
 
