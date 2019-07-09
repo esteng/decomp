@@ -116,14 +116,14 @@ class PredPattGraphBuilder:
                                       for edge
                                       in cls._instantiation_edges(graphid,
                                                                   event,
-                                                                  'pred')])
+                                                                  'predicate')])
 
         # add links between argument nodes and syntax nodes
         edges = [edge
                  for event in predpatt.events
                  for arg in event.arguments
                  for edge
-                 in cls._instantiation_edges(graphid, arg, 'arg')]
+                 in cls._instantiation_edges(graphid, arg, 'argument')]
 
         predpattgraph.add_edges_from(edges)
 
@@ -144,12 +144,12 @@ class PredPattGraphBuilder:
         for node in predpattgraph.nodes:
             if 'semantics' in node:
                 predpattgraph.nodes[node]['type'] = 'semantics'
-                predpattgraph.nodes[node]['frompredpatt'] = 'true'
+                predpattgraph.nodes[node]['frompredpatt'] = True
 
                 if 'arg' in node:
-                    predpattgraph.nodes[node]['subtype'] = 'arg'
+                    predpattgraph.nodes[node]['subtype'] = 'argument'
                 elif 'pred' in node:
-                    predpattgraph.nodes[node]['subtype'] = 'pred'
+                    predpattgraph.nodes[node]['subtype'] = 'predicate'
 
         return predpattgraph
 
@@ -162,8 +162,8 @@ class PredPattGraphBuilder:
                                 if child_head_token_id !=
                                 graphid+'syntax-'+str(tok.position+1)]
 
-        return [(parent_id, child_head_token_id, {'instantiation': 'head'})] +\
-               [(parent_id, tokid, {'instantiation': 'nonhead'})
+        return [(parent_id, child_head_token_id, {'type': 'instance', 'subtype': 'head'})] +\
+               [(parent_id, tokid, {'type': 'instance', 'subtype': 'nonhead'})
                 for tokid in child_span_token_ids]
 
     @staticmethod
@@ -175,11 +175,11 @@ class PredPattGraphBuilder:
             child_id_pred = graphid+'semantics-pred-'+str(child_node.position+1)
             return [(parent_id,
                      child_id,
-                     {'semrel': 'arg', 'frompredpatt': 'true'})] +\
+                     {'type': 'semantics', 'subtype': 'argument', 'frompredpatt': True})] +\
                    [(child_id,
                      child_id_pred,
-                     {'semrel': 'subpred', 'frompredpatt': 'true'})]
+                     {'type': 'semantics', 'subtype': 'head', 'frompredpatt': True})]
 
         return [(parent_id,
                  child_id,
-                 {'semrel': 'arg', 'frompredpatt': 'true'})]
+                 {'type': 'semantics', 'subtype': 'argument', 'frompredpatt': True})]

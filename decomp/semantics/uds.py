@@ -37,14 +37,14 @@ SEMANTICS_NODES_QUERY = prepareQuery("""
 PREDICATE_NODES_QUERY = prepareQuery("""
                                      SELECT ?n
                                      WHERE { ?n <type> <semantics> .
-                                             ?n <subtype> <pred> .
+                                             ?n <subtype> <predicate> .
                                            }
                                      """)
 
 ARGUMENT_NODES_QUERY = prepareQuery("""
                                     SELECT ?n
                                     WHERE { ?n <type> <semantics> .
-                                            ?n <subtype> <arg> .
+                                            ?n <subtype> <argument> .
                                           }
                                     """)
 
@@ -299,15 +299,14 @@ class UDSGraph:
         return self._node_query(ARGUMENT_NODES_QUERY)
 
     @lru_cache(maxsize=128)
-    def semantics_edges(self, nodeid=None):
+    def semantics_edges(self, nodeid=None, frompredpatt=False):
         """The edges between semantics nodes"""
 
         if nodeid is None:
             querystr = """
                        SELECT ?e
                        WHERE { ?n1 ?e ?n2 .
-                               ?n1 <type> <semantics> .
-                               ?n2 <type> <semantics> .
+                               ?e <type> <semantics> .
                              }
                        """
         else:
@@ -317,23 +316,22 @@ class UDSGraph:
                                } UNION
                                { ?n1 ?e <"""+nodeid+"""> .
                                }
-                               <"""+nodeid+"""> <type> <semantics> .
-                               ?n1 <type> <semantics> .
+                               ?e <type> <semantics> .
                              }
                        """
 
         return self._edge_query(querystr)
 
     @lru_cache(maxsize=128)
-    def syntax_edges(self, nodeid=None):
+    def argument_edges(self, nodeid=None, frompredpatt=False):
         """The edges between semantics nodes"""
 
         if nodeid is None:
             querystr = """
                        SELECT ?e
                        WHERE { ?n1 ?e ?n2 .
-                               ?n1 <type> <syntax> .
-                               ?n2 <type> <syntax> .
+                               ?e <type> <semantics> .
+                               ?e <subtype> <argument> .
                              }
                        """
         else:
@@ -343,36 +341,84 @@ class UDSGraph:
                                } UNION
                                { ?n1 ?e <"""+nodeid+"""> .
                                }
-                               <"""+nodeid+"""> <type> <syntax> .
-                               ?n1 <type> <syntax> .
+                               ?e <type> <semantics> .
+                               ?e <subtype> <argument> .
                              }
                        """
 
         return self._edge_query(querystr)
 
     @lru_cache(maxsize=128)
-    def semantics_syntax_edges(self, nodeid=None):
+    def argument_head_edges(self, nodeid=None, frompredpatt=False):
+        """The edges between semantics nodes"""
+
+        if nodeid is None:
+            querystr = """
+                       SELECT ?e
+                       WHERE { ?n1 ?e ?n2 .
+                               ?e <type> <semantics> .
+                               ?e <subtype> <head> .
+                             }
+                       """
+        else:
+            querystr = """
+                       SELECT ?e
+                       WHERE { { <"""+nodeid+"""> ?e ?n1 .
+                               } UNION
+                               { ?n1 ?e <"""+nodeid+"""> .
+                               }
+                               ?e <type> <semantics> .
+                               ?e <subtype> <head> .
+                             }
+                       """
+
+        return self._edge_query(querystr)
+
+    @lru_cache(maxsize=128)
+    def syntax_edges(self, nodeid=None, frompredpatt=False):
+        """The edges between semantics nodes"""
+
+        if nodeid is None:
+            querystr = """
+                       SELECT ?e
+                       WHERE { ?n1 ?e ?n2 .
+                               ?e <type> <syntax> .
+                             }
+                       """
+        else:
+            querystr = """
+                       SELECT ?e
+                       WHERE { { <"""+nodeid+"""> ?e ?n1 .
+                               } UNION
+                               { ?n1 ?e <"""+nodeid+"""> .
+                               }
+                               ?e <type> <syntax> .
+                             }
+                       """
+
+        return self._edge_query(querystr)
+
+    @lru_cache(maxsize=128)
+    def semantics_syntax_edges(self, nodeid=None, frompredpatt=False):
         """The edges between syntax nodes and semantics nodes"""
 
         if nodeid is None:
             querystr = """
-                       SELECT ?e
+                       SELECT DISTINCT ?e
                        WHERE { ?n1 ?e ?n2 .
-                               ?n1 <type> <semantics> .
+                               ?n1 <type> <syntax> .
                                ?n2 <type> <syntax> .
                              }
                        """
+
         else:
             querystr = """
                        SELECT ?e
                        WHERE { { <"""+nodeid+"""> ?e ?n1 .
-                                 <"""+nodeid+"""> <type> <semantics> .
-                                 ?n1 <type> <syntax> .
                                } UNION
                                { ?n1 ?e <"""+nodeid+"""> .
-                                 ?n1 <type> <semantics> .
-                                 <"""+nodeid+"""> <type> <syntax> .
                                }
+                               ?e <type> <instance> .
                              }
                        """
 
@@ -439,7 +485,7 @@ class UDSGraph:
         return [(self.nodes[e[1]]['position'],
                  [self.nodes[e[1]][a] for a in attrs])
                 for e, attr in self.semantics_syntax_edges(nodeid).items()
-                if attr['instantiation'] == 'head'][0]
+                if attr['type'] == 'instance'][0]
 
     def to_dict(self):
         """Convert the graph to a dictionary"""
@@ -484,8 +530,8 @@ class UDSGraph:
 
             attrs = dict(attrs,
                          **{'type': 'semantics',
-                            'subtype': 'arg',
-                            'frompredpatt': 'false'})
+                            'subtype': 'argument',
+                            'frompredpatt': False})
 
             self.graph.add_node(node,
                                 **{k: v
@@ -494,7 +540,7 @@ class UDSGraph:
             self.graph.add_edge(*edge, semrel='subarg')
 
             instedge = (node, node.replace('semantics-subarg', 'syntax'))
-            self.graph.add_edge(*instedge, instantiation='head')
+            self.graph.add_edge(*instedge, type='instance', subtype='head')
 
         elif 'subpredof' in attrs and attrs['subpredof'] in self.graph.nodes:
             edge = (attrs['subpredof'], node)
@@ -504,8 +550,8 @@ class UDSGraph:
 
             attrs = dict(attrs,
                          **{'type': 'semantics',
-                            'subtype': 'pred',
-                            'frompredpatt': 'false'})
+                            'subtype': 'predicate',
+                            'frompredpatt': False})
 
             self.graph.add_node(node,
                                 **{k: v
@@ -515,7 +561,7 @@ class UDSGraph:
             self.graph.add_edge(*edge, semrel='subpred')
 
             instedge = (node, node.replace('semantics-subpred', 'syntax'))
-            self.graph.add_edge(*instedge, instantiation='head')
+            self.graph.add_edge(*instedge, type='instance', subtype='head')
 
         else:
             warnmsg = 'adding orphan node ' + node + ' in ' + self.name
@@ -523,8 +569,8 @@ class UDSGraph:
 
             attrs = dict(attrs,
                          **{'type': 'semantics',
-                            'subtype': 'pred',
-                            'frompredpatt': 'false'})
+                            'subtype': 'predicate',
+                            'frompredpatt': False})
 
             self.graph.add_node(node,
                                 **{k: v
@@ -534,7 +580,7 @@ class UDSGraph:
             synnode = node.replace('semantics-pred', 'syntax')
             synnode = synnode.replace('semantics-arg', 'syntax')
             instedge = (node, synnode)
-            self.graph.add_edge(*instedge, instantiation='head')
+            self.graph.add_edge(*instedge, type='instance', subtype='head')
 
             if self.rootid is not None:
                 self.graph.add_edge(self.rootid, node)
