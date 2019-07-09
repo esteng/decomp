@@ -89,6 +89,7 @@ class DependencyGraphBuilder:
         node_id = row[0]
 
         node_attrs = {'type': 'syntax',
+                      'subtype': 'node',
                       'position': int(node_id)}
         other_attrs = {}
 
@@ -120,5 +121,8 @@ class DependencyGraphBuilder:
 
         edge_attrs = {attr: row[idx]
                       for attr, idx in CONLL_EDGE_ATTRS[spec].items()}
+
+        edge_attrs['type'] = 'syntax'
+        edge_attrs['subtype'] = 'dependency'
 
         return (parent_id, child_id, edge_attrs)

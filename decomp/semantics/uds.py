@@ -25,12 +25,17 @@ ROOT_QUERY = prepareQuery("""
 SYNTAX_NODES_QUERY = prepareQuery("""
                                   SELECT ?n
                                   WHERE { ?n <type> <syntax> .
+                                          ?n <subtype> <node> .
                                         }
                                   """)
 
 SEMANTICS_NODES_QUERY = prepareQuery("""
                                      SELECT ?n
                                      WHERE { ?n <type> <semantics> .
+                                             { ?n <subtype> <predicate> .
+                                             } UNION
+                                             { ?n <subtype> <argument> .
+                                             }
                                            }
                                      """)
 
@@ -305,8 +310,11 @@ class UDSGraph:
         if nodeid is None:
             querystr = """
                        SELECT ?e
-                       WHERE { ?n1 ?e ?n2 .
-                               ?e <type> <semantics> .
+                       WHERE { ?e <type> <semantics> .
+                               { ?e <subtype> <dependency> .
+                               } UNION
+                               { ?e <subtype> <head> .
+                               }
                              }
                        """
         else:
@@ -317,6 +325,10 @@ class UDSGraph:
                                { ?n1 ?e <"""+nodeid+"""> .
                                }
                                ?e <type> <semantics> .
+                               { ?e <subtype> <dependency> .
+                               } UNION
+                               { ?e <subtype> <head> .
+                               }
                              }
                        """
 
@@ -331,7 +343,7 @@ class UDSGraph:
                        SELECT ?e
                        WHERE { ?n1 ?e ?n2 .
                                ?e <type> <semantics> .
-                               ?e <subtype> <argument> .
+                               ?e <subtype> <dependency> .
                              }
                        """
         else:
@@ -342,7 +354,7 @@ class UDSGraph:
                                { ?n1 ?e <"""+nodeid+"""> .
                                }
                                ?e <type> <semantics> .
-                               ?e <subtype> <argument> .
+                               ?e <subtype> <dependency> .
                              }
                        """
 
@@ -381,8 +393,8 @@ class UDSGraph:
         if nodeid is None:
             querystr = """
                        SELECT ?e
-                       WHERE { ?n1 ?e ?n2 .
-                               ?e <type> <syntax> .
+                       WHERE { ?e <type> <syntax> .
+                               ?e <subtype> <dependency> .
                              }
                        """
         else:
@@ -393,6 +405,7 @@ class UDSGraph:
                                { ?n1 ?e <"""+nodeid+"""> .
                                }
                                ?e <type> <syntax> .
+                               ?e <subtype> <dependency> .
                              }
                        """
 
@@ -406,8 +419,7 @@ class UDSGraph:
             querystr = """
                        SELECT DISTINCT ?e
                        WHERE { ?n1 ?e ?n2 .
-                               ?n1 <type> <syntax> .
-                               ?n2 <type> <syntax> .
+                               ?e <type> <instance> .
                              }
                        """
 

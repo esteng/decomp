@@ -116,14 +116,14 @@ class PredPattGraphBuilder:
                                       for edge
                                       in cls._instantiation_edges(graphid,
                                                                   event,
-                                                                  'predicate')])
+                                                                  'pred')])
 
         # add links between argument nodes and syntax nodes
         edges = [edge
                  for event in predpatt.events
                  for arg in event.arguments
                  for edge
-                 in cls._instantiation_edges(graphid, arg, 'argument')]
+                 in cls._instantiation_edges(graphid, arg, 'arg')]
 
         predpattgraph.add_edges_from(edges)
 
@@ -162,7 +162,8 @@ class PredPattGraphBuilder:
                                 if child_head_token_id !=
                                 graphid+'syntax-'+str(tok.position+1)]
 
-        return [(parent_id, child_head_token_id, {'type': 'instance', 'subtype': 'head'})] +\
+        return [(parent_id, child_head_token_id,
+                 {'type': 'instance', 'subtype': 'head'})] +\
                [(parent_id, tokid, {'type': 'instance', 'subtype': 'nonhead'})
                 for tokid in child_span_token_ids]
 
@@ -172,14 +173,22 @@ class PredPattGraphBuilder:
         child_id = graphid+'semantics-arg-'+str(child_node.position+1)
 
         if pred_child:
-            child_id_pred = graphid+'semantics-pred-'+str(child_node.position+1)
+            child_id_pred = graphid +\
+                            'semantics-pred-' +\
+                            str(child_node.position+1)
             return [(parent_id,
                      child_id,
-                     {'type': 'semantics', 'subtype': 'argument', 'frompredpatt': True})] +\
+                     {'type': 'semantics',
+                      'subtype': 'dependency',
+                      'frompredpatt': True})] +\
                    [(child_id,
                      child_id_pred,
-                     {'type': 'semantics', 'subtype': 'head', 'frompredpatt': True})]
+                     {'type': 'semantics',
+                      'subtype': 'head',
+                      'frompredpatt': True})]
 
         return [(parent_id,
                  child_id,
-                 {'type': 'semantics', 'subtype': 'argument', 'frompredpatt': True})]
+                 {'type': 'semantics',
+                  'subtype': 'dependency',
+                  'frompredpatt': True})]
