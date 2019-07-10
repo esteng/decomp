@@ -497,7 +497,33 @@ class UDSGraph:
         return [(self.nodes[e[1]]['position'],
                  [self.nodes[e[1]][a] for a in attrs])
                 for e, attr in self.semantics_syntax_edges(nodeid).items()
-                if attr['type'] == 'instance'][0]
+                if attr['subtype'] == 'head'][0]
+
+    def maxima(self, nodeids=None):
+        """The nodes in nodeids not dominated by any other nodes in nodeids"""
+
+        if nodeids is None:
+            nodeids = self.nodes
+
+        return [nid for nid in nodeids
+                if all(e[0] == nid
+                       for e in self.edges
+                       if e[0] in nodeids
+                       if e[1] in nodeids
+                       if nid in e)]
+
+    def minima(self, nodeids=None):
+        """The nodes in nodeids not dominating any other nodes in nodeids"""
+
+        if nodeids is None:
+            nodeids = self.nodes
+
+        return [nid for nid in nodeids
+                if all(e[0] != nid
+                       for e in self.edges
+                       if e[0] in nodeids
+                       if e[1] in nodeids
+                       if nid in e)]
 
     def to_dict(self):
         """Convert the graph to a dictionary"""
