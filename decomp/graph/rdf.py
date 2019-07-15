@@ -1,42 +1,58 @@
 """Module for converting from networkx to RDF"""
 
-from networkx import to_dict_of_dicts
+from networkx import DiGraph, to_dict_of_dicts
 from rdflib import Graph, URIRef, Literal
 
+
 class RDFConverter:
+    """A converter between NetworkX digraphs and RDFLib graph
+
+    Parameters
+    ----------
+    nxgraph
+        the graph to convert
+    """
 
     NODES = {}
     EDGES = {}
     PROPERTIES = {}
     VALUES = {}
 
-    def __init__(self, nxgraph):
+    def __init__(self, nxgraph: DiGraph):
         self.nxgraph = nxgraph
         self.rdfgraph = Graph()
 
     @classmethod
-    def networkx_to_rdf(cls, nxgraph):
+    def networkx_to_rdf(cls, nxgraph: DiGraph) -> Graph:
+        """Convert a NetworkX digraph to an RDFLib graph
+
+        Parameters
+        ----------
+        nxgraph
+            the NetworkX graph to convert
+        """
+
         converter = cls(nxgraph)
 
         nxdict = to_dict_of_dicts(nxgraph)
 
         for nodeid1, edgedict in nxdict.items():
-            converter.add_node_attributes(nodeid1)
+            converter._add_node_attributes(nodeid1)
 
             for nodeid2, properties in edgedict.items():
-                converter.add_node_attributes(nodeid2)
-                converter.add_edge_attributes(nodeid1, nodeid2, properties)
+                converter._add_node_attributes(nodeid2)
+                converter._add_edge_attributes(nodeid1, nodeid2, properties)
 
         cls._reset_attributes()
 
         return converter.rdfgraph
 
-    def add_node_attributes(self, nodeid):
+    def _add_node_attributes(self, nodeid):
         for propid, val in self.nxgraph.nodes[nodeid].items():
             triple = self.__class__._construct_property(nodeid, propid, val)
             self.rdfgraph.add(triple)
 
-    def add_edge_attributes(self, nodeid1, nodeid2, properties):
+    def _add_edge_attributes(self, nodeid1, nodeid2, properties):
         triple = self.__class__._construct_edge(nodeid1, nodeid2)
         self.rdfgraph.add(triple)
 

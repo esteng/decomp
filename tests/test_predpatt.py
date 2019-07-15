@@ -40,7 +40,7 @@ listtree = [l.split() for l in rawtree.split('\n')]
 
 def setup_graph():
     ud = DependencyGraphBuilder.from_conll(listtree, 'tree1')
-    
+
     pp = PredPatt(next(load_conllu(rawtree))[1],
                   opts=PredPattOpts(resolve_relcl=True,
                                     borrow_arg_for_relcl=True,
@@ -48,12 +48,15 @@ def setup_graph():
                                     cut=True))
 
     graph = PredPattGraphBuilder.from_predpatt(pp, ud, 'tree1')
-    
+
     return pp, graph
 
-# def setup_corpus():
-#     rawfile = StringIO(rawtree)
-#     return PredPattCorpus.from_file(infile=rawfile)
+def setup_corpus_from_str():
+    return PredPattCorpus.from_conll(rawtree)
+
+def setup_corpus_from_io():
+    rawfile = StringIO(rawtree)
+    return PredPattCorpus.from_conll(rawfile)
 
 ## could use @nose.with_setup
 def test_predpatt_graph_builder():
@@ -62,12 +65,12 @@ def test_predpatt_graph_builder():
     assert pp_graph.name == 'tree1'
     assert all(['tree1' in nodeid
                 for nodeid in pp_graph.nodes])
-    
+
     # test syntax nodes
     assert pp_graph.nodes['tree1-root-0'] == {'position': 0,
                                               'type': 'root',
                                               'sentence': sentence}
-    
+
     for idx, node in pp_graph.nodes.items():
         if 'syntax' in idx:
             idx = idx.split('-')[-1]
@@ -76,7 +79,7 @@ def test_predpatt_graph_builder():
                     assert node['form'] == row[1]
                     assert node['lemma'] == row[2]
                     assert node['upos'] == row[3]
-                    assert node['xpos'] == row[4]        
+                    assert node['xpos'] == row[4]
 
     for (idx1, idx2), edge in pp_graph.edges.items():
         if 'syntax' in idx1 and 'syntax' in idx2:
@@ -85,10 +88,10 @@ def test_predpatt_graph_builder():
                 if int(row[0]) == idx2:
                     assert int(row[6]) == idx1
                     assert row[7] == edge['deprel']
-        
+
     # test semantics nodes
     assert 'tree1-semantics-pred-0' not in pp_graph.nodes
-    assert 'tree1-semantics-arg-0' not in pp_graph.nodes    
+    assert 'tree1-semantics-arg-0' not in pp_graph.nodes
 
     assert all(['arg' in nodeid or 'pred' in nodeid
                 for nodeid in pp_graph.nodes
@@ -106,17 +109,17 @@ def test_predpatt_graph_builder():
                 for nodeid in pp_graph.nodes
                 if 'semantics' in nodeid])
 
-    assert all([pp_graph.nodes[nodeid]['subtype'] in ['arg', 'pred']
+    assert all([pp_graph.nodes[nodeid]['subtype'] in ['argument', 'predicate']
                 for nodeid in pp_graph.nodes
                 if 'semantics' in nodeid])
 
     assert all([('arg' in nodeid) ==
-                (pp_graph.nodes[nodeid]['subtype'] == 'arg')
+                (pp_graph.nodes[nodeid]['subtype'] == 'argument')
                 for nodeid in pp_graph.nodes
                 if 'semantics' in nodeid])
 
     assert all([('pred' in nodeid) ==
-                (pp_graph.nodes[nodeid]['subtype'] == 'pred')
+                (pp_graph.nodes[nodeid]['subtype'] == 'predicate')
                 for nodeid in pp_graph.nodes
                 if 'semantics' in nodeid])
 
@@ -125,28 +128,37 @@ def test_predpatt_graph_builder():
                 if 'syntax' in nodeid])
 
     # test argument edges
-    assert all([pp_graph.edges[(nodeid2, nodeid1)]['semrel'] == 'arg'
+    assert all([pp_graph.edges[(nodeid2, nodeid1)]['type'] == 'semantics' and
+                pp_graph.edges[(nodeid2, nodeid1)]['subtype'] == 'dependency'
                 for nodeid1, node1 in pp_graph.nodes.items()
                 for nodeid2 in pp_graph.nodes
                 if 'semantics-arg' in nodeid1
                 if 'semantics-pred' in nodeid2
-                if (nodeid2, nodeid1) in pp_graph.edges])    
-    
+                if (nodeid2, nodeid1) in pp_graph.edges])
+
     # tests subpredicate edges
     subprededge = ('tree1-semantics-arg-11', 'tree1-semantics-pred-11')
-    assert pp_graph.edges[subprededge]['semrel'] == 'subpred'
+    assert pp_graph.edges[subprededge]['type'] == 'semantics'
+    assert pp_graph.edges[subprededge]['subtype'] == 'head'
 
     assert all([(nodeid2, nodeid1) in pp_graph.edges and
-                pp_graph.edges[(nodeid2, nodeid1)]['semrel'] == 'subpred'
+                pp_graph.edges[(nodeid2, nodeid1)]['type'] == 'semantics' and
+                pp_graph.edges[(nodeid2, nodeid1)]['subtype'] == 'head'
                 for nodeid1, node1 in pp_graph.nodes.items()
                 for nodeid2 in pp_graph.nodes
                 if 'semantics-pred' in nodeid1
                 if 'semantics-arg' in nodeid2
                 if nodeid1.split('-')[-1] == nodeid2.split('-')[-1]])
-    
-# def test_predpatt_corpus():
-#     corpus = setup_corpus()
-    
-#     assert all([isinstance(t, DiGraph) for _, t in corpus.graphs.items()])
-#     assert all([isinstance(t, DiGraph) for _, t in corpus]) # tests iterator
-#     assert list(corpus) # tests iterator reset
+
+def test_predpatt_corpus():
+    corpus = setup_corpus_from_str()
+
+    assert all([isinstance(t, DiGraph) for gid, t in corpus.graphs.items()])
+    assert all([isinstance(t, DiGraph) for gid, t in corpus.items()])
+    assert all([isinstance(gid, str) for gid in corpus])
+
+    corpus = setup_corpus_from_io()
+
+    assert all([isinstance(t, DiGraph) for gid, t in corpus.graphs.items()])
+    assert all([isinstance(t, DiGraph) for gid, t in corpus.items()])
+    assert all([isinstance(gid, str) for gid in corpus])

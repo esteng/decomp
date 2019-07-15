@@ -4,61 +4,46 @@ from abc import ABCMeta, abstractmethod
 
 from random import choices
 from warnings import warn
+from typing import Dict, List, Tuple, Iterable, Hashable, Any, TypeVar
+
+InGraph = TypeVar('InGraph')  # the input graph type
+OutGraph = TypeVar('OutGraph')  # the output graph type
+
 
 class Corpus(metaclass=ABCMeta):
     """Container for graphs
 
     Parameters
     ----------
-    parses : iterable
-        list of parsed sentences
-
-    Attributes
-    ----------
-    graphs : list(networkx.graph)
-        list of graphs constructed from data
-    graphids : list(str)
-        list of ids for graphs constructed from data
-    ngraphs : int
-        number of graphs in corpus
+    graphs_raw
+        a sequence of graphs in a format that the graphbuilder for a
+        subclass of this abstract class can process
     """
 
-    def __init__(self, parses):
-        self._parses = parses
-
-        self._graphs = {}
-
+    def __init__(self, graphs_raw: Iterable[InGraph]):
+        self._graphs_raw = graphs_raw
         self._build_graphs()
-        self._initialize_graphs_iterator()
 
-    def __iter__(self):
-        return self
+    def __iter__(self) -> Iterable[Hashable]:
+        return iter(self._graphs)
 
-    def __next__(self):
-        try:
-            return next(self._graphs_iter)
-        except StopIteration:
-            self._initialize_graphs_iterator()
-            raise StopIteration
-
-    def items(self):
+    def items(self) -> Iterable[Tuple[Hashable, OutGraph]]:
         """Dictionary-like iterator for (graphid, graph) pairs"""
         return self._graphs.items()
 
-    def __getitem__(self, k):
+    def __getitem__(self, k: Hashable) -> Any:
         return self._graphs[k]
 
-    def __contains__(self, k):
+    def __contains__(self, k: Hashable) -> bool:
         return k in self._graphs
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._graphs)
 
-    def _initialize_graphs_iterator(self):
-        self._graphs_iter = (el for el in self._graphs.items())
+    def _build_graphs(self) -> None:
+        self._graphs = {}
 
-    def _build_graphs(self):
-        for graphid, rawgraph in self._parses.items():
+        for graphid, rawgraph in self._graphs_raw.items():
             try:
                 self._graphs[graphid] = self._graphbuilder(graphid, rawgraph)
             except ValueError:
@@ -69,26 +54,36 @@ class Corpus(metaclass=ABCMeta):
         self._graphids = list(self._graphs)
 
     @abstractmethod
-    def _graphbuilder(self, graphid, rawgraph):
+    def _graphbuilder(self,
+                      graphid: Hashable,
+                      rawgraph: InGraph) -> OutGraph:
         raise NotImplementedError
 
     @property
-    def graphs(self):
-        """Read-only collection of graphs in corpus"""
+    def graphs(self) -> Dict[Hashable, OutGraph]:
+        """the graphs in corpus"""
         return self._graphs
 
     @property
-    def graphids(self):
-        """Read-only collection of graph ids in corpus"""
+    def graphids(self) -> List[Hashable]:
+        """The graph ids in corpus"""
+
         return self._graphids
 
     @property
-    def ngraphs(self):
+    def ngraphs(self) -> int:
         """Number of graphs in corpus"""
+
         return len(self._graphs)
 
-    def sample(self, k):
-        """Sample k graphs from the corpus"""
+    def sample(self, k: int) -> Dict[Hashable, OutGraph]:
+        """Sample k graphs from the corpus
+
+        Parameters
+        ----------
+        k
+            the number of graphs to sample
+        """
         graphids = choices(self._graphids, k=k)
 
         return {tid: self._graphs[tid] for tid in graphids}

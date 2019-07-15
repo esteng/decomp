@@ -3,7 +3,8 @@
 # pylint: disable=R1704
 """Module for converting PredPatt objects to networkx digraphs"""
 
-from os.path import basename
+from os.path import basename, splitext
+from typing import Tuple, Hashable, TextIO, Optional, Union
 from networkx import DiGraph
 from predpatt import load_conllu, PredPatt, PredPattOpts
 from ..corpus import Corpus
@@ -16,50 +17,53 @@ DEFAULT_PREDPATT_OPTIONS = PredPattOpts(resolve_relcl=True,
 
 
 class PredPattCorpus(Corpus):
-    """Container for predpatt graphs
+    """Container for predpatt graphs"""
 
-    Parameters
-    ----------
-    treeid : str
-        an identifier for the tree
-    predpatt_depgraph : tuple(predpatt.PredPatt, networkx.DiGraph)
-        a pairing of the predpatt for a dependency parse and the graph
-        representing that dependency parse
+    def _graphbuilder(self,
+                      graphid: Hashable,
+                      predpatt_depgraph: Tuple[PredPatt, DiGraph]) -> DiGraph:
+        """
+        Parameters
+        ----------
+        treeid
+            an identifier for the tree
+        predpatt_depgraph
+            a pairing of the predpatt for a dependency parse and the graph
+            representing that dependency parse
+        """
 
-    Attributes
-    ----------
-    graphs : list(networkx.DiGraph)
-        trees constructed from annotated sentences
-    """
-
-    def _graphbuilder(self, graphid, predpatt_depgraph):
         predpatt, depgraph = predpatt_depgraph
 
         return PredPattGraphBuilder.from_predpatt(predpatt, depgraph, graphid)
 
     @classmethod
-    def from_conll(cls, fpath, options=None, name=None):
+    def from_conll(cls,
+                   corpus: Union[str, TextIO],
+                   name: str = 'UDS',
+                   options: Optional[PredPattOpts] = None) -> 'PredPattCorpus':
         """Load a CoNLL dependency corpus and apply predpatt
 
         Parameters
         ----------
-        fpath : str
-            the path to a .conll(u) file
-        options : PredPattOpts
-            options for predpatt extraction
-        name : str
+        corpus
+            (path to) a .conllu file
+        name
             the name of the corpus; used in constructing treeids
+        options
+            options for predpatt extraction
         """
 
-        name = basename(fpath) if name is None else name
         options = DEFAULT_PREDPATT_OPTIONS if options is None else options
 
-        with open(fpath, 'r') as infile:
-            return cls._read_conllu(name, infile, options)
+        if isinstance(corpus, str) and splitext(basename(corpus)) == '.conllu':
+            with open(corpus) as infile:
+                data = infile.read()
 
-    @classmethod
-    def _read_conllu(cls, name, infile, options):
-        data = infile.read()
+        elif isinstance(corpus, str):
+            data = corpus
+
+        else:
+            data = corpus.read()
 
         # load the CoNLL dependency parses as graphs
         ud_corp = {name+'-'+str(i+1): [line.split()
@@ -82,16 +86,19 @@ class PredPattGraphBuilder:
     """A predpatt graph builder"""
 
     @classmethod
-    def from_predpatt(cls, predpatt, depgraph, graphid=''):
+    def from_predpatt(cls,
+                      predpatt: PredPatt,
+                      depgraph: DiGraph,
+                      graphid: str = '') -> DiGraph:
         """Build a DiGraph from a PredPatt object and another DiGraph
 
         Parameters
         ----------
-        predpatt : predpatt.PredPatt
+        predpatt
             the predpatt extraction for the dependency parse
-        depgraph : networkx.DiGraph
+        depgraph
             the dependency graph
-        graphid : str
+        graphid
             the tree indentifier; will be a prefix of all node
             identifiers
         """

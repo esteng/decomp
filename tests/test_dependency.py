@@ -66,6 +66,6 @@ def test_dependency_tree_builder():
 def test_dependency_tree_corpus():
     corpus = setup_corpus()
 
-    assert all([isinstance(t, DiGraph) for _, t in corpus.graphs.items()])
-    assert all([isinstance(t, DiGraph) for _, t in corpus])  # tests iterator
-    assert list(corpus)  # tests iterator reset
+    assert all([isinstance(t, DiGraph) for gid, t in corpus.graphs.items()])
+    assert all([isinstance(t, DiGraph) for gid, t in corpus.items()])
+    assert all([isinstance(gid, str) for gid in corpus])
