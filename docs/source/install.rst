@@ -27,3 +27,13 @@ If you would like to install the package for the purposes of development, you ca
    git clone https://github.com/decompositional-semantics-initiative/decomp.git
    cd decomp
    python setup.py develop
+
+
+If anyone has trouble with installing via setup.py or pip on OsX Mojave, adding the following environment variables  may help:
+
+.. code-block:: bash 
+
+    CXXFLAGS=-stdlib=libc++ CFLAGS=-stdlib=libc++ python setup.py install
+
+
+
