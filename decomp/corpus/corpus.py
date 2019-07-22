@@ -51,8 +51,6 @@ class Corpus(metaclass=ABCMeta):
             except RecursionError:
                 warn(graphid+' has loops')
 
-        self._graphids = list(self._graphs)
-
     @abstractmethod
     def _graphbuilder(self,
                       graphid: Hashable,
@@ -68,7 +66,7 @@ class Corpus(metaclass=ABCMeta):
     def graphids(self) -> List[Hashable]:
         """The graph ids in corpus"""
 
-        return self._graphids
+        return list(self._graphs)
 
     @property
     def ngraphs(self) -> int:

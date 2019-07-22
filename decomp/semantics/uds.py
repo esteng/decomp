@@ -6,12 +6,18 @@
 # pylint: disable=C0103
 """Module for containing representing UDS graphs"""
 
+import os
 import json
+import requests
 
+from pkg_resources import resource_filename
 from os.path import basename, splitext
+from glob import glob
 from logging import info, warning
 from functools import lru_cache
 from typing import Union, Optional, Dict, List, Tuple, Any, TextIO
+from io import BytesIO
+from zipfile import ZipFile
 from memoized_property import memoized_property
 from pyparsing import ParseException
 from rdflib import Graph
@@ -22,6 +28,13 @@ from networkx import DiGraph, adjacency_data, adjacency_graph
 from .predpatt import PredPattCorpus
 from ..graph import RDFConverter
 
+DATA_DIR = resource_filename('decomp', 'data/')
+
+CORPUS_PATHS = glob(os.path.join(DATA_DIR, '*.json'))
+
+ANNOTATION_DIR = os.path.join(DATA_DIR, 'annotations/')
+ANNOTATION_PATHS = glob(os.path.join(ANNOTATION_DIR, '*.json'))
+
 ROOT_QUERY = prepareQuery("""
                           SELECT ?n
                           WHERE { ?n <type> <root> .
@@ -30,44 +43,67 @@ ROOT_QUERY = prepareQuery("""
 
 SYNTAX_NODES_QUERY = prepareQuery("""
                                   SELECT ?n
-                                  WHERE { ?n <type> <syntax> .
-                                          ?n <subtype> <node> .
+                                  WHERE { ?n <domain> <syntax> .
+                                          ?n <type> <token> .
                                         }
                                   """)
 
 SEMANTICS_NODES_QUERY = prepareQuery("""
                                      SELECT ?n
-                                     WHERE { ?n <type> <semantics> .
-                                             { ?n <subtype> <predicate> .
+                                     WHERE { ?n <domain> <semantics> .
+                                             { ?n <type> <predicate> .
                                              } UNION
-                                             { ?n <subtype> <argument> .
+                                             { ?n <type> <argument> .
                                              }
                                            }
                                      """)
 
 PREDICATE_NODES_QUERY = prepareQuery("""
                                      SELECT ?n
-                                     WHERE { ?n <type> <semantics> .
-                                             ?n <subtype> <predicate> .
+                                     WHERE { ?n <domain> <semantics> .
+                                             ?n <type> <predicate> .
                                            }
                                      """)
 
 ARGUMENT_NODES_QUERY = prepareQuery("""
                                     SELECT ?n
-                                    WHERE { ?n <type> <semantics> .
-                                            ?n <subtype> <argument> .
+                                    WHERE { ?n <domain> <semantics> .
+                                            ?n <type> <argument> .
                                           }
                                     """)
 
 SEMANTICS_EDGES_DEFAULT_QUERY = prepareQuery("""
-                                SELECT ?e
-                                WHERE { ?e <type> <semantics> .
-                                        { ?e <subtype> <dependency> .
-                                        } UNION
-                                        { ?e <subtype> <head> .
-                                        }
-                                      }
-                                """)
+                                             SELECT ?e
+                                             WHERE { ?e <domain> <semantics> .
+                                                   { ?e <type> <dependency> .
+                                                   } UNION
+                                                   { ?e <type> <head> .
+                                                   }
+                                                   }
+                                             """)
+
+ARGUMENT_EDGES_DEFAULT_QUERY = prepareQuery("""
+                                            SELECT ?e
+                                            WHERE { ?n1 ?e ?n2 .
+                                                    ?e <domain> <semantics> .
+                                                    ?e <type> <dependency> .
+                                                  }
+                                            """)
+
+ARGUMENT_HEAD_EDGES_DEFAULT_QUERY = prepareQuery("""
+                                             SELECT ?e
+                                             WHERE { ?n1 ?e ?n2 .
+                                                     ?e <domain> <semantics> .
+                                                     ?e <type> <head> .
+                                                   }
+                                                 """)
+
+SYNTAX_EDGES_DEFAULT_QUERY = prepareQuery("""
+                                          SELECT ?e
+                                          WHERE { ?e <domain> <syntax> .
+                                                  ?e <type> <dependency> .
+                                                }
+                                          """)
 
 
 class UDSCorpus(PredPattCorpus):
@@ -78,18 +114,120 @@ class UDSCorpus(PredPattCorpus):
     graphs
         the predpatt graphs to associate the annotations with
     annotations
-        the annotations to associate with predpatt nodes; no
-        annotations can be passed if a pure predpatt corpus is desired
+        additional annotations to associate with predpatt nodes; in
+        most cases, no such annotations will be passed, since the
+        standard UDS annotations are automatically loaded
+    splitname
+        the split to load: "train", "dev", or "test"
     """
 
     def __init__(self,
-                 graphs: PredPattCorpus,
-                 annotations: List['UDSAnnotation'] = []):
-        self._graphs = graphs
-        self._annotations = annotations
+                 graphs: Optional[PredPattCorpus] = None,
+                 annotations: List['UDSAnnotation'] = [],
+                 splitname: Optional[str] = None):
 
-        for ann in annotations:
-            self.add_annotation(ann)
+        if graphs is None and CORPUS_PATHS:
+            self._graphs = {}
+
+            for fpath in CORPUS_PATHS:
+                if splitname is None or splitname in basename(fpath):
+                    corp_split = self.__class__.from_json(fpath)
+                    self._graphs.update(corp_split._graphs)
+
+        elif graphs is None:
+            url = 'https://github.com/UniversalDependencies/' +\
+                  'UD_English-EWT/archive/r1.2.zip'
+
+            udewt = requests.get(url).content
+
+            self._graphs = {}
+
+            with ZipFile(BytesIO(udewt)) as zf:
+                conll_names = [fname for fname in zf.namelist()
+                               if splitext(fname)[-1] == '.conllu']
+
+                for fn in conll_names:
+                    with zf.open(fn) as conll:
+                        conll_str = conll.read().decode('utf-8')
+                        sname = splitext(basename(fn))[0].split('-')[-1]
+                        spl = self.__class__.from_conll(conll_str,
+                                                        name='ewt-'+sname)
+
+                        if sname == splitname or splitname is None:
+                            json_name = 'uds-ewt-'+sname+'.json'
+                            json_path = os.path.join(DATA_DIR, json_name)
+                            spl.to_json(json_path)
+                            self._graphs.update(spl._graphs)
+
+        else:
+            self._graphs = graphs
+
+            annotations += [UDSAnnotation.from_json(fpath)
+                            for fpath in ANNOTATION_PATHS]
+
+            for ann in annotations:
+                self.add_annotation(ann)
+
+    @classmethod
+    def from_conll(cls,
+                   corpus: Union[str, TextIO],
+                   annotations: List[Union[str, TextIO]] = [],
+                   name: str = None) -> 'UDSCorpus':
+        """Load UDS graph corpus from CoNLL (dependencies) and JSON (annotations)
+
+        This method should only be used if the UDS corpus is being
+        (re)built. Otherwise, loading the corpus from the JSON shipped
+        with this package using UDSCorpus.from_json is suggested.
+
+        Parameters
+        ----------
+        corpus
+            (path to) Universal Dependencies corpus in conllu format
+        annotations
+            (paths to) annotations in JSON; in most cases, no such
+            paths/annotations will be passed, since the standard UDS
+            annotations are automatically loaded
+        name
+            corpus name to be appended to the beginning of graph ids
+        """
+
+        predpatt_corpus = PredPattCorpus.from_conll(corpus, name=name)
+        predpatt_graphs = {name: UDSGraph(g, name)
+                           for name, g in predpatt_corpus.items()}
+
+        annotations = [UDSAnnotation.from_json(ann) for ann in annotations]
+
+        return cls(predpatt_graphs, annotations)
+
+    @classmethod
+    def from_json(cls, jsonfile: Union[str, TextIO]) -> 'UDSCorpus':
+        """Load annotated UDS graph corpus (including annotations) from JSON
+
+        This is the suggested method for loading the UDS corpus.
+
+        Parameters
+        ----------
+        jsonfile
+            file containing Universal Decompositional Semantics corpus
+            in JSON format
+        """
+
+        ext = splitext(basename(jsonfile))[-1]
+
+        if isinstance(jsonfile, str) and ext == '.json':
+            with open(jsonfile) as infile:
+                graphs_json = json.load(infile)
+
+        elif isinstance(jsonfile, str):
+            graphs_json = json.loads(jsonfile)
+
+        else:
+            graphs_json = json.load(jsonfile)
+
+        graphs = {name: UDSGraph.from_dict(g_json, name)
+                  for name, g_json in graphs_json.items()}
+
+        return cls(graphs)
 
     def add_annotation(self, annotation: 'UDSAnnotation') -> None:
         """Add annotations to UDS graphs in the corpus
@@ -127,62 +265,31 @@ class UDSCorpus(PredPattCorpus):
         else:
             json.dump(graphs_serializable, outfile)
 
-    @classmethod
-    def from_conll(cls,
-                   corpus: Union[str, TextIO],
-                   annotations: List[Union[str, TextIO]] = [],
-                   name: str = None) -> 'UDSCorpus':
-        """Load UDS graph corpus from CoNLL (dependencies) and JSON (annotations)
+    @memoized_property
+    def node_attribute_names(self):
+        """The union of node attributes in the corpus"""
 
-        This method should only be used if the UDS corpus is being
-        (re)built. Otherwise, loading the corpus from the JSON shipped
-        with this package using UDSCorpus.from_json is suggested.
+        return set([k
+                    for g in self._graphs.values()
+                    for nid, attrs in g.semantics_nodes.items()
+                    for k, v in attrs.items()
+                    if isinstance(v, float)])
 
-        Parameters
-        ----------
-        corpus
-            (path to) Universal Dependencies corpus in conllu format
-        annotations
-            (paths to) annotations in JSON
-        name
-            corpus name to be appended to the beginning of graph ids
-        """
+    @memoized_property
+    def edge_attribute_names(self):
+        """The union of edge attributes in the corpus"""
 
-        predpatt_corpus = PredPattCorpus.from_conll(corpus, name=name)
-        predpatt_graphs = {name: UDSGraph(g, name)
-                           for name, g in predpatt_corpus.items()}
+        return set([k
+                    for g in self._graphs.values()
+                    for _, attrs in g.semantics_edges().items()
+                    for k, v in attrs.items()
+                    if isinstance(v, float)])
 
-        annotations = [UDSAnnotation.from_json(ann) for ann in annotations]
+    @memoized_property
+    def attribute_names(self):
+        """The union of edge attributes in the corpus"""
 
-        return cls(predpatt_graphs, annotations)
-
-    @classmethod
-    def from_json(cls, json: Union[str, TextIO]) -> 'UDSCorpus':
-        """Load annotated UDS graph corpus (including annotations) from JSON
-
-        This is the suggested method for loading the UDS corpus.
-
-        Parameters
-        ----------
-        json
-            file containing Universal Decompositional Semantics corpus
-            in JSON format
-        """
-
-        if isinstance(json, str) and splitext(basename(json)) == '.json':
-            with open(json) as infile:
-                graphs_json = json.load(infile)
-
-        elif isinstance(json, str):
-            graphs_json = json.loads(json)
-
-        else:
-            graphs_json = json.load(json)
-
-        graphs = {name: UDSGraph.from_dict(g_json, name)
-                  for name, g_json in graphs_json.items()}
-
-        return cls(graphs)
+        return self.node_attribute_names | self.edge_attribute_names
 
 
 class UDSGraph:
@@ -309,10 +416,10 @@ class UDSGraph:
                                } UNION
                                { ?n1 ?e <"""+nodeid+"""> .
                                }
-                               ?e <type> <semantics> .
-                               { ?e <subtype> <dependency> .
+                               ?e <domain> <semantics> .
+                               { ?e <type> <dependency> .
                                } UNION
-                               { ?e <subtype> <head> .
+                               { ?e <type> <head> .
                                }
                              }
                        """
@@ -326,13 +433,8 @@ class UDSGraph:
         """The edges between predicates and their arguments"""
 
         if nodeid is None:
-            querystr = """
-                       SELECT ?e
-                       WHERE { ?n1 ?e ?n2 .
-                               ?e <type> <semantics> .
-                               ?e <subtype> <dependency> .
-                             }
-                       """
+            querystr = ARGUMENT_EDGES_DEFAULT_QUERY
+
         else:
             querystr = """
                        SELECT ?e
@@ -340,8 +442,8 @@ class UDSGraph:
                                } UNION
                                { ?n1 ?e <"""+nodeid+"""> .
                                }
-                               ?e <type> <semantics> .
-                               ?e <subtype> <dependency> .
+                               ?e <domain> <semantics> .
+                               ?e <type> <dependency> .
                              }
                        """
 
@@ -356,13 +458,8 @@ class UDSGraph:
         """The edges between nodes and their semantic heads"""
 
         if nodeid is None:
-            querystr = """
-                       SELECT ?e
-                       WHERE { ?n1 ?e ?n2 .
-                               ?e <type> <semantics> .
-                               ?e <subtype> <head> .
-                             }
-                       """
+            querystr = ARGUMENT_HEAD_EDGES_DEFAULT_QUERY
+
         else:
             querystr = """
                        SELECT ?e
@@ -370,8 +467,8 @@ class UDSGraph:
                                } UNION
                                { ?n1 ?e <"""+nodeid+"""> .
                                }
-                               ?e <type> <semantics> .
-                               ?e <subtype> <head> .
+                               ?e <domain> <semantics> .
+                               ?e <type> <head> .
                              }
                        """
 
@@ -384,12 +481,8 @@ class UDSGraph:
         """The edges between syntax nodes"""
 
         if nodeid is None:
-            querystr = """
-                       SELECT ?e
-                       WHERE { ?e <type> <syntax> .
-                               ?e <subtype> <dependency> .
-                             }
-                       """
+            querystr = SYNTAX_EDGES_DEFAULT_QUERY
+
         else:
             querystr = """
                        SELECT ?e
@@ -397,8 +490,8 @@ class UDSGraph:
                                } UNION
                                { ?n1 ?e <"""+nodeid+"""> .
                                }
-                               ?e <type> <syntax> .
-                               ?e <subtype> <dependency> .
+                               ?e <domain> <syntax> .
+                               ?e <type> <dependency> .
                              }
                        """
 
@@ -414,7 +507,7 @@ class UDSGraph:
             querystr = """
                        SELECT DISTINCT ?e
                        WHERE { ?n1 ?e ?n2 .
-                               ?e <type> <instance> .
+                               ?e <domain> <interface> .
                              }
                        """
 
@@ -425,7 +518,7 @@ class UDSGraph:
                                } UNION
                                { ?n1 ?e <"""+nodeid+"""> .
                                }
-                               ?e <type> <instance> .
+                               ?e <domain> <interface> .
                              }
                        """
 
@@ -449,7 +542,7 @@ class UDSGraph:
         attributes in those positions
         """
 
-        if self.nodes[nodeid]['type'] != 'semantics':
+        if self.nodes[nodeid]['domain'] != 'semantics':
             errmsg = 'Only semantics nodes have (nontrivial) spans'
             raise ValueError(errmsg)
 
@@ -475,14 +568,14 @@ class UDSGraph:
         attributes
         """
 
-        if self.nodes[nodeid]['type'] != 'semantics':
+        if self.nodes[nodeid]['domain'] != 'semantics':
             errmsg = 'Only semantics nodes have heads'
             raise ValueError(errmsg)
 
         return [(self.nodes[e[1]]['position'],
                  [self.nodes[e[1]][a] for a in attrs])
                 for e, attr in self.instance_edges(nodeid).items()
-                if attr['subtype'] == 'head'][0]
+                if attr['type'] == 'head'][0]
 
     def maxima(self, nodeids: Optional[List[str]] = None) -> List[str]:
         """The nodes in nodeids not dominated by any other nodes in nodeids"""
@@ -557,18 +650,18 @@ class UDSGraph:
             info(infomsg)
 
             attrs = dict(attrs,
-                         **{'type': 'semantics',
-                            'subtype': 'argument',
+                         **{'domain': 'semantics',
+                            'type': 'argument',
                             'frompredpatt': False})
 
             self.graph.add_node(node,
                                 **{k: v
                                    for k, v in attrs.items()
                                    if k != 'headof'})
-            self.graph.add_edge(*edge, type='semantics', subtype='head')
+            self.graph.add_edge(*edge, domain='semantics', type='head')
 
             instedge = (node, node.replace('semantics-subarg', 'syntax'))
-            self.graph.add_edge(*instedge, type='instance', subtype='head')
+            self.graph.add_edge(*instedge, domain='interface', type='head')
 
         elif 'subargof' in attrs and attrs['subargof'] in self.graph.nodes:
             edge = (attrs['subargof'], node)
@@ -577,18 +670,18 @@ class UDSGraph:
             info(infomsg)
 
             attrs = dict(attrs,
-                         **{'type': 'semantics',
-                            'subtype': 'argument',
+                         **{'domain': 'semantics',
+                            'type': 'argument',
                             'frompredpatt': False})
 
             self.graph.add_node(node,
                                 **{k: v
                                    for k, v in attrs.items()
                                    if k != 'subargof'})
-            self.graph.add_edge(*edge, type='semantics', subtype='subargument')
+            self.graph.add_edge(*edge, domain='semantics', type='subargument')
 
             instedge = (node, node.replace('semantics-subarg', 'syntax'))
-            self.graph.add_edge(*instedge, type='instance', subtype='head')
+            self.graph.add_edge(*instedge, domain='interface', type='head')
 
         elif 'subpredof' in attrs and attrs['subpredof'] in self.graph.nodes:
             edge = (attrs['subpredof'], node)
@@ -597,8 +690,8 @@ class UDSGraph:
             info(infomsg)
 
             attrs = dict(attrs,
-                         **{'type': 'semantics',
-                            'subtype': 'predicate',
+                         **{'domain': 'semantics',
+                            'type': 'predicate',
                             'frompredpatt': False})
 
             self.graph.add_node(node,
@@ -607,19 +700,19 @@ class UDSGraph:
                                    if k != 'subpredof'})
 
             self.graph.add_edge(*edge,
-                                type='semantics',
-                                subtype='subpredicate')
+                                domain='semantics',
+                                type='subpredicate')
 
             instedge = (node, node.replace('semantics-subpred', 'syntax'))
-            self.graph.add_edge(*instedge, type='instance', subtype='head')
+            self.graph.add_edge(*instedge, domain='interface', type='head')
 
         else:
             warnmsg = 'adding orphan node ' + node + ' in ' + self.name
             warning(warnmsg)
 
             attrs = dict(attrs,
-                         **{'type': 'semantics',
-                            'subtype': 'predicate',
+                         **{'domain': 'semantics',
+                            'type': 'predicate',
                             'frompredpatt': False})
 
             self.graph.add_node(node,
@@ -632,7 +725,7 @@ class UDSGraph:
             synnode = synnode.replace('semantics-subpred', 'syntax')
             synnode = synnode.replace('semantics-subarg', 'syntax')
             instedge = (node, synnode)
-            self.graph.add_edge(*instedge, type='instance', subtype='head')
+            self.graph.add_edge(*instedge, domain='interface', type='head')
 
             if self.rootid is not None:
                 self.graph.add_edge(self.rootid, node)
@@ -656,6 +749,8 @@ class UDSAnnotation:
         attribute-value pairs; node ids must not contain _
     """
 
+    CACHE = {}
+    
     def __init__(self, annotation: Dict[str, Dict[str, Any]]):
         self.annotation = annotation
 
@@ -686,7 +781,7 @@ class UDSAnnotation:
             yield name, (node_attrs, self.edge_attributes[name])
 
     @classmethod
-    def from_json(cls, json: Union[str, TextIO]) -> 'UDSAnnotation':
+    def from_json(cls, jsonfile: Union[str, TextIO]) -> 'UDSAnnotation':
         """Load Universal Decompositional Semantics annotation from JSON
 
         The format of the JSON passed to this class method must be:
@@ -711,18 +806,25 @@ class UDSAnnotation:
 
         Parameters
         ----------
-        json
+        jsonfile
             (path to) file containing annotations as JSON
         """
 
-        if isinstance(json, str) and splitext(basename(json)) == '.json':
-            with open(json) as infile:
+        if jsonfile in cls.CACHE:
+            return cls.CACHE[jsonfile]
+
+        ext = splitext(basename(jsonfile))[-1]
+
+        if isinstance(jsonfile, str) and ext == '.json':
+            with open(jsonfile) as infile:
                 annotation = json.load(infile)
 
-        elif isinstance(json, str):
-            annotation = json.loads(json)
+        elif isinstance(jsonfile, str):
+            annotation = json.loads(jsonfile)
 
         else:
-            annotation = json.load(json)
+            annotation = json.load(jsonfile)
 
-        return cls(annotation)
+        cls.CACHE[jsonfile] = cls(annotation)
+
+        return cls.CACHE[jsonfile]

@@ -17,7 +17,10 @@ straightforward to:
     N-Triples_, turtle_, and JSON-LD_, as well as any other format
     supported by NetworkX
 
-Decomp is built and maintained by the `Decompositional Semantics Initiative`_.
+The toolkit was built by `Aaron Steven White`_ and is maintained by
+the `Decompositional Semantics Initiative`_. The UDS dataset was
+constructed from annotations collected by the `Decompositional
+Semantics Initiative`_.
 
 .. _Decomp: https://github.com/decompositional-semantics-initiative/decomp
 .. _Universal Decompositional Semantics (UDS) dataset: http://decomp.io
@@ -30,6 +33,7 @@ Decomp is built and maintained by the `Decompositional Semantics Initiative`_.
 .. _N-Triples: https://www.w3.org/TR/n-triples/
 .. _turtle: https://www.w3.org/TeamSubmission/turtle/
 .. _JSON-LD: https://json-ld.org/
+.. _Aaron Steven White: http://aaronstevenwhite.io/
 .. _Decompositional Semantics Initiative: http://decomp.io/
 
 .. toctree::

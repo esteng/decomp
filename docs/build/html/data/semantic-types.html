@@ -1,0 +1,283 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Universal Decompositional Semantic Types &mdash; Decomp 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Package Reference" href="../package/index.html" />
+    <link rel="prev" title="PredPatt Semantic Graphs" href="semantic-graphs.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Decomp
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Dataset Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="syntactic-graphs.html">Universal Dependencies Syntactic Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="semantic-graphs.html">PredPatt Semantic Graphs</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Universal Decompositional Semantic Types</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#factuality">Factuality</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#genericity">Genericity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#time">Time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#entity-type">Entity type</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#semantic-proto-roles">Semantic Proto-Roles</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../package/index.html">Package Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Decomp</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Dataset Reference</a> &raquo;</li>
+        
+      <li>Universal Decompositional Semantic Types</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/data/semantic-types.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="universal-decompositional-semantic-types">
+<h1><a class="reference external" href="http://decomp.io/">Universal Decompositional Semantic</a> Types<a class="headerlink" href="#universal-decompositional-semantic-types" title="Permalink to this headline">¶</a></h1>
+<p>PredPatt makes very coarse-grained typing distinctions—between predicate and argument nodes, on the one hand, and between dependency and head edges, on the other. UDS provides ultra fine-grained typing distinctions, represented as collections of real-valued attributes. The union of all node and edge attributes defined in UDS determines the <em>UDS type space</em>; any proper subset determines a <em>UDS type subspace</em>.</p>
+<p>UDS attributes are derived from crowd-sourced annotations of the heads or spans corresponding to predicates and/or arguments and are represented in the dataset as node and/or edge attributes. It is important to note that, though all nodes and edges in the semantics domain have a <code class="docutils literal notranslate"><span class="pre">type</span></code> attribute, UDS does not afford any special status to these types. That is, the only thing that UDS “sees” are the nodes and edges in the semantics domain. The set of nodes and edges visible to UDS is a superset of those associated with PredPatt predicates and their arguments.</p>
+<p>There are currently four node type subspaces.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#factuality">Factuality</a></p></li>
+<li><p><a class="reference internal" href="#genericity">Genericity</a></p></li>
+<li><p><a class="reference internal" href="#time">Time</a></p></li>
+<li><p><a class="reference internal" href="#entity-type">Entity type</a></p></li>
+</ul>
+</div></blockquote>
+<p>There is currently one edge type subspace.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#semantic-proto-roles">Semantic Proto-Roles</a></p></li>
+</ul>
+</div></blockquote>
+<div class="section" id="factuality">
+<h2>Factuality<a class="headerlink" href="#factuality" title="Permalink to this headline">¶</a></h2>
+<p><strong>Project page</strong></p>
+<p><a class="reference external" href="http://decomp.io/projects/factuality/">http://decomp.io/projects/factuality/</a></p>
+<p><strong>Attributes</strong></p>
+<p><code class="docutils literal notranslate"><span class="pre">factuality-factual</span></code></p>
+<p><strong>References</strong></p>
+<p>White, A.S., D. Reisinger, K. Sakaguchi, T. Vieira, S. Zhang, R. Rudinger, K. Rawlins, &amp; B. Van Durme. 2016. Universal Decompositional Semantics on Universal Dependencies. Proceedings of the 2016 Conference on Empirical Methods in Natural Language Processing, pages 1713–1723, Austin, Texas, November 1-5, 2016.</p>
+<p>Rudinger, R., White, A.S., &amp; B. Van Durme. 2018. Neural models of factuality. Proceedings of NAACL-HLT 2018, pages 731–744. New Orleans, Louisiana, June 1-6, 2018.</p>
+</div>
+<div class="section" id="genericity">
+<h2>Genericity<a class="headerlink" href="#genericity" title="Permalink to this headline">¶</a></h2>
+<p><strong>Project page</strong></p>
+<p><a class="reference external" href="http://decomp.io/projects/genericity/">http://decomp.io/projects/genericity/</a></p>
+<p><strong>Attributes</strong></p>
+<p><code class="docutils literal notranslate"><span class="pre">genericity-arg-particular</span></code>, <code class="docutils literal notranslate"><span class="pre">genericity-arg-kind</span></code>, <code class="docutils literal notranslate"><span class="pre">genericity-arg-abstract</span></code>, <code class="docutils literal notranslate"><span class="pre">genericity-pred-particular</span></code>, <code class="docutils literal notranslate"><span class="pre">genericity-pred-dynamic</span></code>, <code class="docutils literal notranslate"><span class="pre">genericity-pred-hypothetical</span></code></p>
+<p><strong>References</strong></p>
+<p>Govindarajan, V.S., B. Van Durme, &amp; A.S. White. 2019. Decomposing Generalization: Models of Generic, Habitual, and Episodic Statements. To appear in Transactions of the Association for Computational Linguistics.</p>
+</div>
+<div class="section" id="time">
+<h2>Time<a class="headerlink" href="#time" title="Permalink to this headline">¶</a></h2>
+<p><strong>Project page</strong></p>
+<p><a class="reference external" href="http://decomp.io/projects/time/">http://decomp.io/projects/time/</a></p>
+<p><strong>Attributes</strong></p>
+<p><code class="docutils literal notranslate"><span class="pre">time-dur-hours</span></code>, <code class="docutils literal notranslate"><span class="pre">time-dur-instant</span></code>, <code class="docutils literal notranslate"><span class="pre">time-dur-forever</span></code>, <code class="docutils literal notranslate"><span class="pre">time-dur-weeks</span></code>, <code class="docutils literal notranslate"><span class="pre">time-dur-days</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.time</span></code>, <code class="docutils literal notranslate"><span class="pre">time-dur-months</span></code>, <code class="docutils literal notranslate"><span class="pre">time-dur-years</span></code>, <code class="docutils literal notranslate"><span class="pre">time-dur-centuries</span></code>, <code class="docutils literal notranslate"><span class="pre">time-dur-seconds</span></code>, <code class="docutils literal notranslate"><span class="pre">time-dur-minutes</span></code>, <code class="docutils literal notranslate"><span class="pre">time-dur-decades</span></code></p>
+<p><strong>References</strong></p>
+<p>Vashishtha, S., B. Van Durme, &amp; A.S. White. 2019. Fine-Grained Temporal Relation Extraction. To appear in Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics (ACL 2019), Florence, Italy, July 29-31, 2019.</p>
+</div>
+<div class="section" id="entity-type">
+<h2>Entity type<a class="headerlink" href="#entity-type" title="Permalink to this headline">¶</a></h2>
+<p><strong>Project page</strong></p>
+<p><a class="reference external" href="http://decomp.io/projects/word-sense/">http://decomp.io/projects/word-sense/</a></p>
+<p><strong>Attributes</strong></p>
+<p><code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.shape</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.process</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.relation</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.communication</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.time</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.plant</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.phenomenon</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.animal</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.state</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.substance</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.person</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.possession</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.Tops</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.object</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.event</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.artifact</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.act</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.body</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.attribute</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.quantity</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.motive</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.location</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.cognition</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.group</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.food</span></code>, <code class="docutils literal notranslate"><span class="pre">wordsense-supersense-noun.feeling</span></code></p>
+<p><strong>References</strong></p>
+<p>White, A.S., D. Reisinger, K. Sakaguchi, T. Vieira, S. Zhang, R. Rudinger, K. Rawlins, &amp; B. Van Durme. 2016. Universal Decompositional Semantics on Universal Dependencies. Proceedings of the 2016 Conference on Empirical Methods in Natural Language Processing, pages 1713–1723, Austin, Texas, November 1-5, 2016.</p>
+</div>
+<div class="section" id="semantic-proto-roles">
+<h2>Semantic Proto-Roles<a class="headerlink" href="#semantic-proto-roles" title="Permalink to this headline">¶</a></h2>
+<p><strong>Project page</strong></p>
+<p><a class="reference external" href="http://decomp.io/projects/semantic-proto-roles/">http://decomp.io/projects/semantic-proto-roles/</a></p>
+<p><strong>Attributes</strong></p>
+<p><code class="docutils literal notranslate"><span class="pre">protoroles-was_used</span></code>, <code class="docutils literal notranslate"><span class="pre">protoroles-purpose</span></code>, <code class="docutils literal notranslate"><span class="pre">protoroles-partitive</span></code>, <code class="docutils literal notranslate"><span class="pre">protoroles-location</span></code>, <code class="docutils literal notranslate"><span class="pre">protoroles-instigation</span></code>, <code class="docutils literal notranslate"><span class="pre">protoroles-existed_after</span></code>, <code class="docutils literal notranslate"><span class="pre">protoroles-time</span></code>, <code class="docutils literal notranslate"><span class="pre">protoroles-awareness</span></code>, <code class="docutils literal notranslate"><span class="pre">protoroles-change_of_location</span></code>, <code class="docutils literal notranslate"><span class="pre">protoroles-manner</span></code>, <code class="docutils literal notranslate"><span class="pre">protoroles-sentient</span></code>, <code class="docutils literal notranslate"><span class="pre">protoroles-was_for_benefit</span></code>, <code class="docutils literal notranslate"><span class="pre">protoroles-change_of_state_continuous</span></code>, <code class="docutils literal notranslate"><span class="pre">protoroles-existed_during</span></code>, <code class="docutils literal notranslate"><span class="pre">protoroles-change_of_possession</span></code>, <code class="docutils literal notranslate"><span class="pre">protoroles-existed_before</span></code>, <code class="docutils literal notranslate"><span class="pre">protoroles-volition</span></code>, <code class="docutils literal notranslate"><span class="pre">protoroles-change_of_state</span></code></p>
+<p><strong>References</strong></p>
+<p>White, A.S., D. Reisinger, K. Sakaguchi, T. Vieira, S. Zhang, R. Rudinger, K. Rawlins, &amp; B. Van Durme. 2016. Universal Decompositional Semantics on Universal Dependencies. Proceedings of the 2016 Conference on Empirical Methods in Natural Language Processing, pages 1713–1723, Austin, Texas, November 1-5, 2016.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../package/index.html" class="btn btn-neutral float-right" title="Package Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="semantic-graphs.html" class="btn btn-neutral float-left" title="PredPatt Semantic Graphs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Aaron Steven White
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

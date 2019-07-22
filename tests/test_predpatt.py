@@ -68,6 +68,7 @@ def test_predpatt_graph_builder():
 
     # test syntax nodes
     assert pp_graph.nodes['tree1-root-0'] == {'position': 0,
+                                              'domain': 'root',
                                               'type': 'root',
                                               'sentence': sentence}
 
@@ -97,29 +98,29 @@ def test_predpatt_graph_builder():
                 for nodeid in pp_graph.nodes
                 if 'semantics' in nodeid])
 
+    assert all(['domain' in pp_graph.nodes[nodeid]
+                for nodeid in pp_graph.nodes
+                if 'semantics' in nodeid])
+
+    assert all([pp_graph.nodes[nodeid]['domain'] == 'semantics'
+                for nodeid in pp_graph.nodes
+                if 'semantics' in nodeid])
+
     assert all(['type' in pp_graph.nodes[nodeid]
                 for nodeid in pp_graph.nodes
                 if 'semantics' in nodeid])
 
-    assert all([pp_graph.nodes[nodeid]['type'] == 'semantics'
-                for nodeid in pp_graph.nodes
-                if 'semantics' in nodeid])
-
-    assert all(['subtype' in pp_graph.nodes[nodeid]
-                for nodeid in pp_graph.nodes
-                if 'semantics' in nodeid])
-
-    assert all([pp_graph.nodes[nodeid]['subtype'] in ['argument', 'predicate']
+    assert all([pp_graph.nodes[nodeid]['type'] in ['argument', 'predicate']
                 for nodeid in pp_graph.nodes
                 if 'semantics' in nodeid])
 
     assert all([('arg' in nodeid) ==
-                (pp_graph.nodes[nodeid]['subtype'] == 'argument')
+                (pp_graph.nodes[nodeid]['type'] == 'argument')
                 for nodeid in pp_graph.nodes
                 if 'semantics' in nodeid])
 
     assert all([('pred' in nodeid) ==
-                (pp_graph.nodes[nodeid]['subtype'] == 'predicate')
+                (pp_graph.nodes[nodeid]['type'] == 'predicate')
                 for nodeid in pp_graph.nodes
                 if 'semantics' in nodeid])
 
@@ -128,8 +129,8 @@ def test_predpatt_graph_builder():
                 if 'syntax' in nodeid])
 
     # test argument edges
-    assert all([pp_graph.edges[(nodeid2, nodeid1)]['type'] == 'semantics' and
-                pp_graph.edges[(nodeid2, nodeid1)]['subtype'] == 'dependency'
+    assert all([pp_graph.edges[(nodeid2, nodeid1)]['domain'] == 'semantics' and
+                pp_graph.edges[(nodeid2, nodeid1)]['type'] == 'dependency'
                 for nodeid1, node1 in pp_graph.nodes.items()
                 for nodeid2 in pp_graph.nodes
                 if 'semantics-arg' in nodeid1
@@ -138,12 +139,12 @@ def test_predpatt_graph_builder():
 
     # tests subpredicate edges
     subprededge = ('tree1-semantics-arg-11', 'tree1-semantics-pred-11')
-    assert pp_graph.edges[subprededge]['type'] == 'semantics'
-    assert pp_graph.edges[subprededge]['subtype'] == 'head'
+    assert pp_graph.edges[subprededge]['domain'] == 'semantics'
+    assert pp_graph.edges[subprededge]['type'] == 'head'
 
     assert all([(nodeid2, nodeid1) in pp_graph.edges and
-                pp_graph.edges[(nodeid2, nodeid1)]['type'] == 'semantics' and
-                pp_graph.edges[(nodeid2, nodeid1)]['subtype'] == 'head'
+                pp_graph.edges[(nodeid2, nodeid1)]['domain'] == 'semantics' and
+                pp_graph.edges[(nodeid2, nodeid1)]['type'] == 'head'
                 for nodeid1, node1 in pp_graph.nodes.items()
                 for nodeid2 in pp_graph.nodes
                 if 'semantics-pred' in nodeid1

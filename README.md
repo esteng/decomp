@@ -28,14 +28,8 @@ python setup.py develop
 
 # Reading UDS
 
-The UDS corpus can be read using the `UDSCorpus` class.
+The UDS corpus can be read by directly importing it.
 
 ```python
-from os.path import basename
-from glob import glob
-from decomp.semantics.uds import UDSCorpus
-
-# load UDS from JSON
-uds = {basename(fpath): UDSCorpus.from_json(fpath)
-       for fpath in glob('../data/uds-ewt-*.json')}
+from decomp import uds
 ```

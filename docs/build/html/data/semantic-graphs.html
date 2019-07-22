@@ -1,0 +1,270 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PredPatt Semantic Graphs &mdash; Decomp 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Universal Decompositional Semantic Types" href="semantic-types.html" />
+    <link rel="prev" title="Universal Dependencies Syntactic Graphs" href="syntactic-graphs.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Decomp
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Dataset Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="syntactic-graphs.html">Universal Dependencies Syntactic Graphs</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">PredPatt Semantic Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="semantic-types.html">Universal Decompositional Semantic Types</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../package/index.html">Package Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Decomp</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Dataset Reference</a> &raquo;</li>
+        
+      <li>PredPatt Semantic Graphs</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/data/semantic-graphs.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="predpatt-semantic-graphs">
+<h1><a class="reference external" href="https://github.com/hltcoe/PredPatt">PredPatt</a> Semantic Graphs<a class="headerlink" href="#predpatt-semantic-graphs" title="Permalink to this headline">¶</a></h1>
+<p>The semantic graphs that form the second layer of annotation in the dataset are produced by the <a class="reference external" href="https://github.com/hltcoe/PredPatt">PredPatt</a> system. PredPatt takes as input a UD parse and produces a set of predicates and set of arguments of each predicate. Both predicates and arguments are associated with a single head token in the sentence as well as a set of tokens that make up the predicate or argument (its span). Predicate or argument spans may be trivial in only containinig the head token.</p>
+<p>For example, given the dependency parse for the sentence <em>Chris gave the book to Pat .</em>, PredPatt produces the following.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>?a gave ?b to ?c
+    ?a: Chris
+    ?b: the book
+    ?c: Pat
+</pre></div>
+</div>
+<p>Assuming UD’s 1-indexation, the single predicate in this sentence (<em>gave…to</em>) has a head at position 2 and a span ove positions {2, 5}. This predicate has three arguments, one headed by <em>Chris</em> at position 1, with span over position {1}; one headed by <em>book</em> at position 4, with span over positions {3, 4}; and one headed by <em>Pat</em> at position 6, with span over position {6}.</p>
+<p>See the <a class="reference external" href="https://github.com/hltcoe/PredPatt/blob/master/doc/DOCTEST.md">PredPatt documentation tests</a> for examples.</p>
+<p>Each predicate and argument produced by PredPatt is associated with a node in a digraph with identifier <code class="docutils literal notranslate"><span class="pre">ewt-SPLIT-SENTNUM-semantics-TYPE-HEADTOKNUM</span></code>, where <code class="docutils literal notranslate"><span class="pre">TYPE</span></code> is always either <code class="docutils literal notranslate"><span class="pre">pred</span></code> or <code class="docutils literal notranslate"><span class="pre">arg</span></code> and <code class="docutils literal notranslate"><span class="pre">HEADTOKNUM</span></code> is the ordinal position of the head token within the sentence (1-indexed, following the convention in UD-EWT). At minimum, each such node has the following attributes.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">domain</span></code> (<code class="docutils literal notranslate"><span class="pre">str</span></code>): the subgraph this node is part of (always <code class="docutils literal notranslate"><span class="pre">semantics</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span></code> (<code class="docutils literal notranslate"><span class="pre">str</span></code>): the type of the object in the particular domain (either <code class="docutils literal notranslate"><span class="pre">predicate</span></code> or <code class="docutils literal notranslate"><span class="pre">argument</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">frompredpatt</span></code> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>): whether this node is associated with a predicate or argument output by PredPatt (always <code class="docutils literal notranslate"><span class="pre">True</span></code>)</p></li>
+</ul>
+</div></blockquote>
+<p>Predicate and argument nodes furthermore always have at least one outgoing <em>instance</em> edge that points to nodes in the syntax domain that correspond to the associated span of the predicate or argument. At minimum, each such edge has the following attributes.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">domain</span></code> (<code class="docutils literal notranslate"><span class="pre">str</span></code>): the subgraph this node is part of (always <code class="docutils literal notranslate"><span class="pre">interface</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span></code> (<code class="docutils literal notranslate"><span class="pre">str</span></code>): the type of the object in the particular domain (either <code class="docutils literal notranslate"><span class="pre">head</span></code> or <code class="docutils literal notranslate"><span class="pre">nonhead</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">frompredpatt</span></code> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>): whether this node is associated with a predicate or argument output by PredPatt (always <code class="docutils literal notranslate"><span class="pre">True</span></code>)</p></li>
+</ul>
+</div></blockquote>
+<p>Because PredPatt produces a unique head for each predicate and argument, there is always exactly one instance edge of type <code class="docutils literal notranslate"><span class="pre">head</span></code> from any particular node in the semantics domain. There may or may not be instance edges of type <code class="docutils literal notranslate"><span class="pre">nonhead</span></code>.</p>
+<p>In addition to instance edges, predicate nodes always have exactly one outgoing edge connecting them to each of the nodes corresponding to their arguments. At minimum, each such edge has the following attributes.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">domain</span></code> (<code class="docutils literal notranslate"><span class="pre">str</span></code>): the subgraph this node is part of (always <code class="docutils literal notranslate"><span class="pre">semantics</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span></code> (<code class="docutils literal notranslate"><span class="pre">str</span></code>): the type of the object in the particular domain (always <code class="docutils literal notranslate"><span class="pre">dependency</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">frompredpatt</span></code> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>): whether this node is associated with a predicate or argument output by PredPatt (always <code class="docutils literal notranslate"><span class="pre">True</span></code>)</p></li>
+</ul>
+</div></blockquote>
+<p>There is one special case where an argument nodes has an outgoing edge that points to a predicate node: clausal subordination.</p>
+<p>For example, given the dependency parse for the sentence <em>Gene thought that Chris gave the book to Pat .</em>, PredPatt produces the following.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>?a thinks ?b
+    ?a: Gene
+    ?b: SOMETHING := that Chris gave the book to Pat
+
+?a gave ?b to ?c
+    ?a: Chris
+    ?b: the book
+    ?c: Pat
+</pre></div>
+</div>
+<p>In this case, the second argument of the predicate headed by <em>thinks</em> is the argument <em>that Chris gave the book to Pat</em>, which is headed by <em>gave</em>. This argument is associated with a node of type <code class="docutils literal notranslate"><span class="pre">argument</span></code> with span over positions {3, 4, 5, 6, 7, 8, 9} and identifier <code class="docutils literal notranslate"><span class="pre">ewt-SPLIT-SENTNUM-semantics-arg-5</span></code>. In addition, there is a predicate headed by <em>gave</em>. This predicate is associated with a node with span over positions {5, 8} and identifier <code class="docutils literal notranslate"><span class="pre">ewt-SPLIT-SENTNUM-semantics-pred-5</span></code>. Node <code class="docutils literal notranslate"><span class="pre">ewt-SPLIT-SENTNUM-semantics-arg-5</span></code> then has an outgoing edge pointing to <code class="docutils literal notranslate"><span class="pre">ewt-SPLIT-SENTNUM-semantics-pred-5</span></code>. At minimum, each such edge has the following attributes.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">domain</span></code> (<code class="docutils literal notranslate"><span class="pre">str</span></code>): the subgraph this node is part of (always <code class="docutils literal notranslate"><span class="pre">semantics</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span></code> (<code class="docutils literal notranslate"><span class="pre">str</span></code>): the type of the object in the particular domain (always <code class="docutils literal notranslate"><span class="pre">head</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">frompredpatt</span></code> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>): whether this node is associated with a predicate or argument output by PredPatt (always <code class="docutils literal notranslate"><span class="pre">True</span></code>)</p></li>
+</ul>
+</div></blockquote>
+<p>The <code class="docutils literal notranslate"><span class="pre">type</span></code> attribute in this case has the same value as instance edges, but crucially the <code class="docutils literal notranslate"><span class="pre">domain</span></code> attribute is distinct. In the case of instance edges, it is <code class="docutils literal notranslate"><span class="pre">interface</span></code> and in the case of clausal subordination, it is <code class="docutils literal notranslate"><span class="pre">semantics</span></code>. This matters when making queries against the graph.</p>
+<p>If the <code class="docutils literal notranslate"><span class="pre">frompredpatt</span></code> attribute has value <code class="docutils literal notranslate"><span class="pre">True</span></code>, it is guaranteed that the only semantics edges of type <code class="docutils literal notranslate"><span class="pre">head</span></code> are ones that involve clausal subordination like the above. This is not guaranteed for nodes for which the <code class="docutils literal notranslate"><span class="pre">frompredpatt</span></code> attribute has value <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="semantic-types.html" class="btn btn-neutral float-right" title="Universal Decompositional Semantic Types" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="syntactic-graphs.html" class="btn btn-neutral float-left" title="Universal Dependencies Syntactic Graphs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Aaron Steven White
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

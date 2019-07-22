@@ -1,8 +1,15 @@
-Tutorial
-========
+Tutorials
+=========
+
+If you have not already :doc:`installed </install>` the decomp
+package, follow those instructions before continuing the tutorial.
 
 .. toctree::
    :maxdepth: 2
+   :caption: Contents:
 
-   building-uds
-   loading-uds
+   quick-start
+   reading
+   querying
+   visualizing
+   serializing

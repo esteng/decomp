@@ -5,7 +5,7 @@ from rdflib import Graph, URIRef, Literal
 
 
 class RDFConverter:
-    """A converter between NetworkX digraphs and RDFLib graph
+    """A converter between NetworkX digraphs and RDFLib graphs
 
     Parameters
     ----------
@@ -89,7 +89,7 @@ class RDFConverter:
         if propid not in cls.NODES:
             cls.PROPERTIES[propid] = URIRef(propid)
 
-        if propid in ['type', 'subtype']:
+        if propid in ['domain', 'type']:
             if val not in cls.VALUES:
                 cls.VALUES[val] = URIRef(val)
 

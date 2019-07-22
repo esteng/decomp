@@ -45,6 +45,7 @@ def test_dependency_tree_builder():
     # test the root
     # test syntax nodes
     assert tree.nodes['tree1-root-0'] == {'position': 0,
+                                          'domain': 'root',
                                           'type': 'root',
                                           'sentence': sentence}
 

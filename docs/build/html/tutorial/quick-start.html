@@ -1,0 +1,305 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Quick Start &mdash; Decomp 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Reading the UDS dataset" href="reading.html" />
+    <link rel="prev" title="Tutorials" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Decomp
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Tutorials</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reading.html">Reading the UDS dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="querying.html">Querying UDS Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualizing.html">Visualizing UDS Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="serializing.html">Serializing the UDS dataset</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../data/index.html">Dataset Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../package/index.html">Package Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Decomp</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Tutorials</a> &raquo;</li>
+        
+      <li>Quick Start</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/tutorial/quick-start.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="quick-start">
+<h1>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h1>
+<p>To read the Universal Decompositional Semantics (UDS) dataset, use:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">decomp</span> <span class="kn">import</span> <span class="n">uds</span>
+</pre></div>
+</div>
+<p>This imports a <a class="reference external" href="../package/decomp.semantics.uds.html#decomp.semantics.uds.UDSCorpus">UDSCorpus</a> object <code class="docutils literal notranslate"><span class="pre">uds</span></code>, which contains all
+graphs across all splits in the data. If you would like a corpus,
+e.g., containing only a particular split, see other loading options in
+<a class="reference internal" href="reading.html"><span class="doc">Reading the UDS dataset</span></a>.</p>
+<p>The first time you do this import, it will take several minutes to
+complete while the dataset is built from the <a class="reference external" href="https://github.com/UniversalDependencies/UD_English-EWT">Universal Dependencies
+English Web Treebank</a>, which is not shipped with the package (but is
+downloaded automatically on import in the background), and the <a class="reference external" href="http://decomp.io/data/">UDS
+annotations</a>, which are shipped with the package. Subsequent uses
+will be faster, since the built dataset is cached.</p>
+<p><a class="reference external" href="../package/decomp.semantics.uds.html#decomp.semantics.uds.UDSGraph">UDSGraph</a> objects in the corpus can be accessed using standard
+dictionary getters or iteration.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># the UDS graph corresponding to the 12th sentence in</span>
+<span class="c1"># en-ud-train.conllu</span>
+<span class="n">uds</span><span class="p">[</span><span class="s2">&quot;ewt-train-12&quot;</span><span class="p">]</span>
+
+<span class="c1"># prints all the graph identifiers in the corpus</span>
+<span class="c1"># (e.g. &quot;ewt-train-12&quot;)</span>
+<span class="k">for</span> <span class="n">graphid</span> <span class="ow">in</span> <span class="n">uds</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">graphid</span><span class="p">)</span>
+
+<span class="c1"># prints all the graph identifiers in the corpus</span>
+<span class="c1"># (e.g. &quot;ewt-train-12&quot;) along with the corresponding sentence</span>
+<span class="k">for</span> <span class="n">graphid</span><span class="p">,</span> <span class="n">graph</span> <span class="ow">in</span> <span class="n">uds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">graphid</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">sentence</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A list of graph identifiers can be accessed via the <code class="docutils literal notranslate"><span class="pre">graphids</span></code>
+attribute of the UDSCorpus. A mapping from these identifiers and the
+corresponding graph can be accessed via the <code class="docutils literal notranslate"><span class="pre">graphs</span></code> attribute.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># a list of the graph identifiers in the corpus</span>
+<span class="n">uds</span><span class="o">.</span><span class="n">graphids</span>
+
+<span class="c1"># a dictionary mapping the graph identifiers to the</span>
+<span class="c1"># corresponding graph</span>
+<span class="n">uds</span><span class="o">.</span><span class="n">graphs</span>
+</pre></div>
+</div>
+<p>There are various instance attributes and methods for accessing nodes, edges, and their attributes in the UDS graphs.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># the UDS graph corresponding to the 12th sentence in</span>
+<span class="c1"># en-ud-train.conllu</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">uds</span><span class="p">[</span><span class="s2">&quot;ewt-train-12&quot;</span><span class="p">]</span>
+
+<span class="c1"># a dictionary mapping identifiers for syntax nodes in the UDS</span>
+<span class="c1"># graph to their attributes</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">syntax_nodes</span>
+
+<span class="c1"># a dictionary mapping identifiers for semantics nodes in the UDS</span>
+<span class="c1"># graph to their attributes</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">semantics_nodes</span>
+
+<span class="c1"># a dictionary mapping identifiers for semantics edges (tuples of</span>
+<span class="c1"># node identifiers) in the UDS graph to their attributes</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">semantics_edges</span><span class="p">()</span>
+
+<span class="c1"># a dictionary mapping identifiers for semantics edges (tuples of</span>
+<span class="c1"># node identifiers) in the UDS graph involving the predicate headed</span>
+<span class="c1"># by the 7th token to their attributes</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">semantics_edges</span><span class="p">(</span><span class="s1">&#39;ewt-train-12-semantics-pred-7&#39;</span><span class="p">)</span>
+
+<span class="c1"># a dictionary mapping identifiers for syntax edges (tuples of</span>
+<span class="c1"># node identifiers) in the UDS graph to their attributes</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">syntax_edges</span><span class="p">()</span>
+
+<span class="c1"># a dictionary mapping identifiers for syntax edges (tuples of</span>
+<span class="c1"># node identifiers) in the UDS graph involving the node for</span>
+<span class="c1"># the 7th token to their attributes</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">syntax_edges</span><span class="p">(</span><span class="s1">&#39;ewt-train-12-syntax-7&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>There are also methods for accessing relationships between semantics and syntax nodes.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># a tuple of ordinal position for the head syntax node in the UDS</span>
+<span class="c1"># graph that make of the predicate headed by the 7th token in the</span>
+<span class="c1"># corresponding sentence to a list of the form and lemma attributes</span>
+<span class="c1"># for that token</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="s1">&#39;ewt-train-12-semantics-pred-7&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;form&#39;</span><span class="p">,</span> <span class="s1">&#39;lemma&#39;</span><span class="p">])</span>
+
+<span class="c1"># a dictionary mapping ordinal position for syntax nodes in the UDS</span>
+<span class="c1"># graph that make of the predicate headed by the 7th token in the</span>
+<span class="c1"># corresponding sentence to a list of the form and lemma attributes</span>
+<span class="c1"># for the corresponding tokens</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">span</span><span class="p">(</span><span class="s1">&#39;ewt-train-12-semantics-pred-7&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;form&#39;</span><span class="p">,</span> <span class="s1">&#39;lemma&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>All of these methods are built on top of the <code class="docutils literal notranslate"><span class="pre">query</span></code> method, which accepts arbitrary SPARQL 1.1 queries. See <a class="reference internal" href="querying.html"><span class="doc">Querying UDS Graphs</span></a> for details.</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="reading.html" class="btn btn-neutral float-right" title="Reading the UDS dataset" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Tutorials" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Aaron Steven White
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

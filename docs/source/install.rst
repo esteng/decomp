@@ -29,7 +29,7 @@ If you would like to install the package for the purposes of development, you ca
    python setup.py develop
 
 
-If anyone has trouble with installing via setup.py or pip on OsX Mojave, adding the following environment variables  may help:
+If you have trouble installing via setup.py or pip on OS X Mojave, adding the following environment variables may help.
 
 .. code-block:: bash 
 

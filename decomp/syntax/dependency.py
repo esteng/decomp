@@ -75,6 +75,7 @@ class DependencyGraphBuilder:
 
         depgraph.add_node(treeid+'root-0',
                           position=0,
+                          domain='root',
                           type='root',
                           sentence=' '.join(sentence))
 
@@ -88,8 +89,8 @@ class DependencyGraphBuilder:
     def _conll_node_attrs(treeid, row, spec):
         node_id = row[0]
 
-        node_attrs = {'type': 'syntax',
-                      'subtype': 'node',
+        node_attrs = {'domain': 'syntax',
+                      'type': 'token',
                       'position': int(node_id)}
         other_attrs = {}
 
@@ -122,7 +123,7 @@ class DependencyGraphBuilder:
         edge_attrs = {attr: row[idx]
                       for attr, idx in CONLL_EDGE_ATTRS[spec].items()}
 
-        edge_attrs['type'] = 'syntax'
-        edge_attrs['subtype'] = 'dependency'
+        edge_attrs['domain'] = 'syntax'
+        edge_attrs['type'] = 'dependency'
 
         return (parent_id, child_id, edge_attrs)

@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Package Reference" href="../package/index.html" />
-    <link rel="prev" title="Loading UDS" href="../tutorial/loading-uds.html" /> 
+    <link rel="next" title="Universal Dependencies Syntactic Graphs" href="syntactic-graphs.html" />
+    <link rel="prev" title="Serializing the UDS dataset" href="../tutorial/serializing.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -83,8 +83,13 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorial</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Dataset Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Dataset Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="syntactic-graphs.html">Universal Dependencies Syntactic Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="semantic-graphs.html">PredPatt Semantic Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="semantic-types.html">Universal Decompositional Semantic Types</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../package/index.html">Package Reference</a></li>
 </ul>
 
@@ -152,7 +157,23 @@
             
   <div class="section" id="dataset-reference">
 <h1>Dataset Reference<a class="headerlink" href="#dataset-reference" title="Permalink to this headline">¶</a></h1>
-<p>Decomp ships with the Universal Decompositional Semantics (UDS) dataset in a NetworkX-readable JSON format.</p>
+<p>The Universal Decompositional Semantics (UDS) dataset consists of three layers of annotations built on top of the <a class="reference external" href="https://catalog.ldc.upenn.edu/LDC2012T13">English Web Treebank</a> (EWT).</p>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="syntactic-graphs.html">Universal Dependencies Syntactic Graphs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="semantic-graphs.html">PredPatt Semantic Graphs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="semantic-types.html">Universal Decompositional Semantic Types</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="semantic-types.html#factuality">Factuality</a></li>
+<li class="toctree-l2"><a class="reference internal" href="semantic-types.html#genericity">Genericity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="semantic-types.html#time">Time</a></li>
+<li class="toctree-l2"><a class="reference internal" href="semantic-types.html#entity-type">Entity type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="semantic-types.html#semantic-proto-roles">Semantic Proto-Roles</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<p>Each layer contains pointers directly to the previous layer.</p>
 </div>
 
 
@@ -163,10 +184,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../package/index.html" class="btn btn-neutral float-right" title="Package Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="syntactic-graphs.html" class="btn btn-neutral float-right" title="Universal Dependencies Syntactic Graphs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../tutorial/loading-uds.html" class="btn btn-neutral float-left" title="Loading UDS" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="../tutorial/serializing.html" class="btn btn-neutral float-left" title="Serializing the UDS dataset" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

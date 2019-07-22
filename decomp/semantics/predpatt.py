@@ -150,13 +150,13 @@ class PredPattGraphBuilder:
         # this is done to distinguish them from nodes added through annotations
         for node in predpattgraph.nodes:
             if 'semantics' in node:
-                predpattgraph.nodes[node]['type'] = 'semantics'
+                predpattgraph.nodes[node]['domain'] = 'semantics'
                 predpattgraph.nodes[node]['frompredpatt'] = True
 
                 if 'arg' in node:
-                    predpattgraph.nodes[node]['subtype'] = 'argument'
+                    predpattgraph.nodes[node]['type'] = 'argument'
                 elif 'pred' in node:
-                    predpattgraph.nodes[node]['subtype'] = 'predicate'
+                    predpattgraph.nodes[node]['type'] = 'predicate'
 
         return predpattgraph
 
@@ -170,8 +170,10 @@ class PredPattGraphBuilder:
                                 graphid+'syntax-'+str(tok.position+1)]
 
         return [(parent_id, child_head_token_id,
-                 {'type': 'instance', 'subtype': 'head'})] +\
-               [(parent_id, tokid, {'type': 'instance', 'subtype': 'nonhead'})
+                 {'domain': 'interface',
+                  'type': 'head'})] +\
+               [(parent_id, tokid, {'domain': 'interface',
+                                    'type': 'nonhead'})
                 for tokid in child_span_token_ids]
 
     @staticmethod
@@ -185,17 +187,17 @@ class PredPattGraphBuilder:
                             str(child_node.position+1)
             return [(parent_id,
                      child_id,
-                     {'type': 'semantics',
-                      'subtype': 'dependency',
+                     {'domain': 'semantics',
+                      'type': 'dependency',
                       'frompredpatt': True})] +\
                    [(child_id,
                      child_id_pred,
-                     {'type': 'semantics',
-                      'subtype': 'head',
+                     {'domain': 'semantics',
+                      'type': 'head',
                       'frompredpatt': True})]
 
         return [(parent_id,
                  child_id,
-                 {'type': 'semantics',
-                  'subtype': 'dependency',
+                 {'domain': 'semantics',
+                  'type': 'dependency',
                   'frompredpatt': True})]

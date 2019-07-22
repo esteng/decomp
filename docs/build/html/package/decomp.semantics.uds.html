@@ -83,7 +83,7 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../data/index.html">Dataset Reference</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Package Reference</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decomp.syntax.html">decomp.syntax</a></li>
@@ -179,7 +179,7 @@ attribute-value pairs; node ids must not contain _</p>
 </dl>
 <dl class="method">
 <dt id="decomp.semantics.uds.UDSAnnotation.from_json">
-<em class="property">classmethod </em><code class="sig-name descname">from_json</code><span class="sig-paren">(</span><em class="sig-param">json</em><span class="sig-paren">)</span><a class="headerlink" href="#decomp.semantics.uds.UDSAnnotation.from_json" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">from_json</code><span class="sig-paren">(</span><em class="sig-param">jsonfile</em><span class="sig-paren">)</span><a class="headerlink" href="#decomp.semantics.uds.UDSAnnotation.from_json" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load Universal Decompositional Semantics annotation from JSON</p>
 <p>The format of the JSON passed to this class method must be:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">GRAPHID_1</span><span class="p">:</span> <span class="p">{</span><span class="n">NODEID_1_1</span><span class="p">:</span> <span class="p">{</span><span class="n">ATTRIBUTE_I</span><span class="p">:</span> <span class="n">VALUE</span><span class="p">,</span>
@@ -199,7 +199,7 @@ identifiers of the predpatt graphs to which the annotations
 will be added</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>json</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Textio</span></code>]) – (path to) file containing annotations as JSON</p>
+<dd class="field-odd"><p><strong>jsonfile</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Textio</span></code>]) – (path to) file containing annotations as JSON</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p><a class="reference internal" href="#decomp.semantics.uds.UDSAnnotation" title="decomp.semantics.uds.UDSAnnotation"><code class="xref py py-class docutils literal notranslate"><span class="pre">UDSAnnotation</span></code></a></p>
@@ -219,14 +219,16 @@ all edges that touch it</p>
 
 <dl class="class">
 <dt id="decomp.semantics.uds.UDSCorpus">
-<em class="property">class </em><code class="sig-prename descclassname">decomp.semantics.uds.</code><code class="sig-name descname">UDSCorpus</code><span class="sig-paren">(</span><em class="sig-param">graphs</em>, <em class="sig-param">annotations=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#decomp.semantics.uds.UDSCorpus" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">decomp.semantics.uds.</code><code class="sig-name descname">UDSCorpus</code><span class="sig-paren">(</span><em class="sig-param">graphs=None, annotations=[&lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;], splitname=None</em><span class="sig-paren">)</span><a class="headerlink" href="#decomp.semantics.uds.UDSCorpus" title="Permalink to this definition">¶</a></dt>
 <dd><p>Container for collection of Universal Decompositional Semantics graphs</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>graphs</strong> (<a class="reference internal" href="decomp.semantics.predpatt.html#decomp.semantics.predpatt.PredPattCorpus" title="decomp.semantics.predpatt.PredPattCorpus"><code class="xref py py-class docutils literal notranslate"><span class="pre">PredPattCorpus</span></code></a>) – the predpatt graphs to associate the annotations with</p></li>
-<li><p><strong>annotations</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference internal" href="#decomp.semantics.uds.UDSAnnotation" title="decomp.semantics.uds.UDSAnnotation"><code class="xref py py-class docutils literal notranslate"><span class="pre">UDSAnnotation</span></code></a>]) – the annotations to associate with predpatt nodes; no
-annotations can be passed if a pure predpatt corpus is desired</p></li>
+<li><p><strong>graphs</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<a class="reference internal" href="decomp.semantics.predpatt.html#decomp.semantics.predpatt.PredPattCorpus" title="decomp.semantics.predpatt.PredPattCorpus"><code class="xref py py-class docutils literal notranslate"><span class="pre">PredPattCorpus</span></code></a>]) – the predpatt graphs to associate the annotations with</p></li>
+<li><p><strong>annotations</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference internal" href="#decomp.semantics.uds.UDSAnnotation" title="decomp.semantics.uds.UDSAnnotation"><code class="xref py py-class docutils literal notranslate"><span class="pre">UDSAnnotation</span></code></a>]) – additional annotations to associate with predpatt nodes; in
+most cases, no such annotations will be passed, since the
+standard UDS annotations are automatically loaded</p></li>
+<li><p><strong>splitname</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – the split to load: “train”, “dev”, or “test”</p></li>
 </ul>
 </dd>
 </dl>
@@ -245,6 +247,18 @@ annotations can be passed if a pure predpatt corpus is desired</p></li>
 </dd></dl>
 
 <dl class="method">
+<dt id="decomp.semantics.uds.UDSCorpus.attribute_names">
+<em class="property">property </em><code class="sig-name descname">attribute_names</code><a class="headerlink" href="#decomp.semantics.uds.UDSCorpus.attribute_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>The union of edge attributes in the corpus</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="decomp.semantics.uds.UDSCorpus.edge_attribute_names">
+<em class="property">property </em><code class="sig-name descname">edge_attribute_names</code><a class="headerlink" href="#decomp.semantics.uds.UDSCorpus.edge_attribute_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>The union of edge attributes in the corpus</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="decomp.semantics.uds.UDSCorpus.from_conll">
 <em class="property">classmethod </em><code class="sig-name descname">from_conll</code><span class="sig-paren">(</span><em class="sig-param">corpus</em>, <em class="sig-param">annotations=[]</em>, <em class="sig-param">name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#decomp.semantics.uds.UDSCorpus.from_conll" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load UDS graph corpus from CoNLL (dependencies) and JSON (annotations)</p>
@@ -255,7 +269,9 @@ with this package using UDSCorpus.from_json is suggested.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>corpus</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Textio</span></code>]) – (path to) Universal Dependencies corpus in conllu format</p></li>
-<li><p><strong>annotations</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Textio</span></code>]]) – (paths to) annotations in JSON</p></li>
+<li><p><strong>annotations</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Textio</span></code>]]) – (paths to) annotations in JSON; in most cases, no such
+paths/annotations will be passed, since the standard UDS
+annotations are automatically loaded</p></li>
 <li><p><strong>name</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – corpus name to be appended to the beginning of graph ids</p></li>
 </ul>
 </dd>
@@ -267,18 +283,24 @@ with this package using UDSCorpus.from_json is suggested.</p>
 
 <dl class="method">
 <dt id="decomp.semantics.uds.UDSCorpus.from_json">
-<em class="property">classmethod </em><code class="sig-name descname">from_json</code><span class="sig-paren">(</span><em class="sig-param">json</em><span class="sig-paren">)</span><a class="headerlink" href="#decomp.semantics.uds.UDSCorpus.from_json" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">from_json</code><span class="sig-paren">(</span><em class="sig-param">jsonfile</em><span class="sig-paren">)</span><a class="headerlink" href="#decomp.semantics.uds.UDSCorpus.from_json" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load annotated UDS graph corpus (including annotations) from JSON</p>
 <p>This is the suggested method for loading the UDS corpus.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>json</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Textio</span></code>]) – file containing Universal Decompositional Semantics corpus
+<dd class="field-odd"><p><strong>jsonfile</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Textio</span></code>]) – file containing Universal Decompositional Semantics corpus
 in JSON format</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p><a class="reference internal" href="#decomp.semantics.uds.UDSCorpus" title="decomp.semantics.uds.UDSCorpus"><code class="xref py py-class docutils literal notranslate"><span class="pre">UDSCorpus</span></code></a></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="decomp.semantics.uds.UDSCorpus.node_attribute_names">
+<em class="property">property </em><code class="sig-name descname">node_attribute_names</code><a class="headerlink" href="#decomp.semantics.uds.UDSCorpus.node_attribute_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>The union of node attributes in the corpus</p>
 </dd></dl>
 
 <dl class="method">
