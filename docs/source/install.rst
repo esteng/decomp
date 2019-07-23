@@ -8,7 +8,7 @@ Decomp can be installed using ``pip``.
 
 .. code-block:: bash
 
-   pip install git+git://github.com/decompositional-semantics-initiative/decomp.git
+   pip install git+git://github.com/decompositional-semantics-initiative/decomp.git --process-dependency-links
 
 
 You can also clone and use the included ``setup.py`` with the ``install`` flag.
