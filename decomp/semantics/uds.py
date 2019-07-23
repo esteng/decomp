@@ -28,13 +28,6 @@ from networkx import DiGraph, adjacency_data, adjacency_graph
 from .predpatt import PredPattCorpus
 from ..graph import RDFConverter
 
-DATA_DIR = resource_filename('decomp', 'data/')
-
-CORPUS_PATHS = glob(os.path.join(DATA_DIR, '*.json'))
-
-ANNOTATION_DIR = os.path.join(DATA_DIR, 'annotations/')
-ANNOTATION_PATHS = glob(os.path.join(ANNOTATION_DIR, '*.json'))
-
 ROOT_QUERY = prepareQuery("""
                           SELECT ?n
                           WHERE { ?n <type> <root> .
@@ -121,16 +114,33 @@ class UDSCorpus(PredPattCorpus):
         the split to load: "train", "dev", or "test"
     """
 
+    DATA_DIR = resource_filename('decomp', 'data/')
+
+    CORPUS_PATHS = {splitext(basename(p))[0].split('-')[-1]: p
+                    for p in glob(os.path.join(DATA_DIR, '*.json'))}
+
+    ANNOTATION_DIR = os.path.join(DATA_DIR, 'annotations/')
+    ANNOTATION_PATHS = glob(os.path.join(ANNOTATION_DIR, '*.json'))
+
     def __init__(self,
                  graphs: Optional[PredPattCorpus] = None,
                  annotations: List['UDSAnnotation'] = [],
                  splitname: Optional[str] = None):
 
-        if graphs is None and CORPUS_PATHS:
+        if not (splitname is None or splitname in ['train', 'dev', 'test']):
+            errmsg = 'splitname must be "train", "dev", or "test"'
+            raise ValueError(errmsg)
+
+        if graphs is None and self.__class__.CORPUS_PATHS:
             self._graphs = {}
 
-            for fpath in CORPUS_PATHS:
-                if splitname is None or splitname in basename(fpath):
+            if splitname is not None:
+                fpath = self.__class__.CORPUS_PATHS[splitname]
+                corp_split = self.__class__.from_json(fpath)
+                self._graphs.update(corp_split._graphs)
+
+            else:
+                for fpath in self.__class__.CORPUS_PATHS:
                     corp_split = self.__class__.from_json(fpath)
                     self._graphs.update(corp_split._graphs)
 
@@ -142,6 +152,8 @@ class UDSCorpus(PredPattCorpus):
 
             self._graphs = {}
 
+            annpaths = self.__class__.ANNOTATION_PATHS
+
             with ZipFile(BytesIO(udewt)) as zf:
                 conll_names = [fname for fname in zf.namelist()
                                if splitext(fname)[-1] == '.conllu']
@@ -151,19 +163,31 @@ class UDSCorpus(PredPattCorpus):
                         conll_str = conll.read().decode('utf-8')
                         sname = splitext(basename(fn))[0].split('-')[-1]
                         spl = self.__class__.from_conll(conll_str,
+                                                        annpaths,
                                                         name='ewt-'+sname)
+
+                        # in case additional annotations are passed;
+                        # this should generally NOT happen, since this
+                        # branch is only entered on first build, but
+                        # if someone imported this class directly from
+                        # the semantics module without first building
+                        # the dataset, they could in principle try to
+                        # pass annotations, so we want to do something
+                        # reasonable here
+                        for ann in annotations:
+                            spl.add_annotation(ann)
 
                         if sname == splitname or splitname is None:
                             json_name = 'uds-ewt-'+sname+'.json'
-                            json_path = os.path.join(DATA_DIR, json_name)
+                            json_path = os.path.join(self.__class__.DATA_DIR,
+                                                     json_name)
                             spl.to_json(json_path)
                             self._graphs.update(spl._graphs)
 
+                            self.__class__.CORPUS_PATHS[sname] = json_path
+
         else:
             self._graphs = graphs
-
-            annotations += [UDSAnnotation.from_json(fpath)
-                            for fpath in ANNOTATION_PATHS]
 
             for ann in annotations:
                 self.add_annotation(ann)
@@ -392,13 +416,13 @@ class UDSGraph:
     def syntax_subgraph(self) -> DiGraph:
         """The part of the graph with only syntax nodes"""
 
-        return self.graph.subgraph(list(self.syntax_nodes.keys()))
+        return self.graph.subgraph(list(self.syntax_nodes))
 
     @memoized_property
     def semantics_subgraph(self) -> DiGraph:
         """The part of the graph with only semantics nodes"""
 
-        return self.graph.subgraph(list(self.semantics_nodes.keys()))
+        return self.graph.subgraph(list(self.semantics_nodes))
 
     @lru_cache(maxsize=128)
     def semantics_edges(self,
@@ -623,88 +647,127 @@ class UDSGraph:
         return cls(adjacency_graph(graph), name)
 
     def add_annotation(self,
-                       node_attrs: Dict[str, Any],
-                       edge_attrs: Dict[str, Any]) -> None:
+                       node_attrs: Dict[str, Dict[str, Any]],
+                       edge_attrs: Dict[str, Dict[str, Any]],
+                       add_heads: bool = True,
+                       add_subargs: bool = False,
+                       add_subpreds: bool = False,
+                       add_orphans: bool = False) -> None:
         """Add node and or edge annotations to the graph
 
         Parameters
         ----------
         node_attrs
         edge_attrs
+        add_heads
+        add_subargs
+        add_subpreds
+        add_orphans
         """
 
         for node, attrs in node_attrs.items():
-            self._add_node_annotation(node, attrs)
+            self._add_node_annotation(node, attrs,
+                                      add_heads, add_subargs,
+                                      add_subpreds, add_orphans)
 
         for edge, attrs in edge_attrs.items():
             self._add_edge_annotation(edge, attrs)
 
-    def _add_node_annotation(self, node, attrs):
+    def _add_node_annotation(self, node, attrs,
+                             add_heads, add_subargs,
+                             add_subpreds, add_orphans):
         if node in self.graph.nodes:
             self.graph.nodes[node].update(attrs)
 
         elif 'headof' in attrs and attrs['headof'] in self.graph.nodes:
             edge = (attrs['headof'], node)
 
-            infomsg = 'adding head edge ' + str(edge) + ' to ' + self.name
-            info(infomsg)
+            if not add_heads:
+                infomsg = 'head edge ' + str(edge) + ' in ' + self.name +\
+                          ' found in annotations but not added'
+                info(infomsg)
 
-            attrs = dict(attrs,
-                         **{'domain': 'semantics',
-                            'type': 'argument',
-                            'frompredpatt': False})
+            else:
+                infomsg = 'adding head edge ' + str(edge) + ' to ' + self.name
+                info(infomsg)
 
-            self.graph.add_node(node,
-                                **{k: v
-                                   for k, v in attrs.items()
-                                   if k != 'headof'})
-            self.graph.add_edge(*edge, domain='semantics', type='head')
+                attrs = dict(attrs,
+                             **{'domain': 'semantics',
+                                'type': 'argument',
+                                'frompredpatt': False})
 
-            instedge = (node, node.replace('semantics-subarg', 'syntax'))
-            self.graph.add_edge(*instedge, domain='interface', type='head')
+                self.graph.add_node(node,
+                                    **{k: v
+                                       for k, v in attrs.items()
+                                       if k != 'headof'})
+                self.graph.add_edge(*edge, domain='semantics', type='head')
+
+                instedge = (node, node.replace('semantics-subarg', 'syntax'))
+                self.graph.add_edge(*instedge, domain='interface', type='head')
 
         elif 'subargof' in attrs and attrs['subargof'] in self.graph.nodes:
             edge = (attrs['subargof'], node)
 
-            infomsg = 'adding subarg edge ' + str(edge) + ' to ' + self.name
-            info(infomsg)
+            if not add_subargs:
+                infomsg = 'subarg edge ' + str(edge) + ' in ' + self.name +\
+                          ' found in annotations but not added'
+                info(infomsg)
 
-            attrs = dict(attrs,
-                         **{'domain': 'semantics',
-                            'type': 'argument',
-                            'frompredpatt': False})
+            else:
+                infomsg = 'adding subarg edge ' + str(edge) + ' to ' +\
+                          self.name
+                info(infomsg)
 
-            self.graph.add_node(node,
-                                **{k: v
-                                   for k, v in attrs.items()
-                                   if k != 'subargof'})
-            self.graph.add_edge(*edge, domain='semantics', type='subargument')
+                attrs = dict(attrs,
+                             **{'domain': 'semantics',
+                                'type': 'argument',
+                                'frompredpatt': False})
 
-            instedge = (node, node.replace('semantics-subarg', 'syntax'))
-            self.graph.add_edge(*instedge, domain='interface', type='head')
+                self.graph.add_node(node,
+                                    **{k: v
+                                       for k, v in attrs.items()
+                                       if k != 'subargof'})
+                self.graph.add_edge(*edge,
+                                    domain='semantics',
+                                    type='subargument')
+
+                instedge = (node, node.replace('semantics-subarg', 'syntax'))
+                self.graph.add_edge(*instedge, domain='interface', type='head')
 
         elif 'subpredof' in attrs and attrs['subpredof'] in self.graph.nodes:
             edge = (attrs['subpredof'], node)
 
-            infomsg = 'adding subpred edge ' + str(edge) + ' to ' + self.name
+            if not add_subpreds:
+                infomsg = 'subpred edge ' + str(edge) + ' in ' + self.name +\
+                          ' found in annotations but not added'
+                info(infomsg)
+
+            else:
+                infomsg = 'adding subpred edge ' + str(edge) + ' to ' +\
+                          self.name
+                info(infomsg)
+
+                attrs = dict(attrs,
+                             **{'domain': 'semantics',
+                                'type': 'predicate',
+                                'frompredpatt': False})
+
+                self.graph.add_node(node,
+                                    **{k: v
+                                       for k, v in attrs.items()
+                                       if k != 'subpredof'})
+
+                self.graph.add_edge(*edge,
+                                    domain='semantics',
+                                    type='subpredicate')
+
+                instedge = (node, node.replace('semantics-subpred', 'syntax'))
+                self.graph.add_edge(*instedge, domain='interface', type='head')
+
+        elif not add_orphans:
+            infomsg = 'orphan node ' + node + ' in ' + self.name +\
+                      ' found in annotations but not added'
             info(infomsg)
-
-            attrs = dict(attrs,
-                         **{'domain': 'semantics',
-                            'type': 'predicate',
-                            'frompredpatt': False})
-
-            self.graph.add_node(node,
-                                **{k: v
-                                   for k, v in attrs.items()
-                                   if k != 'subpredof'})
-
-            self.graph.add_edge(*edge,
-                                domain='semantics',
-                                type='subpredicate')
-
-            instedge = (node, node.replace('semantics-subpred', 'syntax'))
-            self.graph.add_edge(*instedge, domain='interface', type='head')
 
         else:
             warnmsg = 'adding orphan node ' + node + ' in ' + self.name
@@ -750,7 +813,7 @@ class UDSAnnotation:
     """
 
     CACHE = {}
-    
+
     def __init__(self, annotation: Dict[str, Dict[str, Any]]):
         self.annotation = annotation
 
