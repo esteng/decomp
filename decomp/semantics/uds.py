@@ -110,7 +110,7 @@ class UDSCorpus(PredPattCorpus):
         additional annotations to associate with predpatt nodes; in
         most cases, no such annotations will be passed, since the
         standard UDS annotations are automatically loaded
-    splitname
+    split
         the split to load: "train", "dev", or "test"
     """
 
@@ -125,17 +125,17 @@ class UDSCorpus(PredPattCorpus):
     def __init__(self,
                  graphs: Optional[PredPattCorpus] = None,
                  annotations: List['UDSAnnotation'] = [],
-                 splitname: Optional[str] = None):
+                 split: Optional[str] = None):
 
-        if not (splitname is None or splitname in ['train', 'dev', 'test']):
-            errmsg = 'splitname must be "train", "dev", or "test"'
+        if not (split is None or split in ['train', 'dev', 'test']):
+            errmsg = 'split must be "train", "dev", or "test"'
             raise ValueError(errmsg)
 
         if graphs is None and self.__class__.CORPUS_PATHS:
             self._graphs = {}
 
-            if splitname is not None:
-                fpath = self.__class__.CORPUS_PATHS[splitname]
+            if split is not None:
+                fpath = self.__class__.CORPUS_PATHS[split]
                 corp_split = self.__class__.from_json(fpath)
                 self._graphs.update(corp_split._graphs)
 
@@ -177,7 +177,7 @@ class UDSCorpus(PredPattCorpus):
                         for ann in annotations:
                             spl.add_annotation(ann)
 
-                        if sname == splitname or splitname is None:
+                        if sname == split or split is None:
                             json_name = 'uds-ewt-'+sname+'.json'
                             json_path = os.path.join(self.__class__.DATA_DIR,
                                                      json_name)
@@ -329,10 +329,10 @@ class UDSGraph:
         self.name = name
         self.graph = graph
 
-        #self.graph._add_performative_nodes()
-
         self.nodes = self.graph.nodes
         self.edges = self.graph.edges
+
+        self._add_performative_nodes()
 
     @memoized_property
     def rdf(self) -> Graph:
@@ -347,7 +347,49 @@ class UDSGraph:
         return list(self.query(ROOT_QUERY))[0][0].toPython()
 
     def _add_performative_nodes(self):
-        self.graph.add_node(self.graph.name+'-semantics-arg')
+        # used instead of the predicate_nodes attribute to speed up
+        # build time, since predicate nodes uses a SPARQL query, thus
+        # requiring constructing an RDF
+        max_preds = self.maxima([nid for nid, attrs
+                                 in self.graph.nodes.items()
+                                 if attrs['domain'] == 'semantics'
+                                 if attrs['type'] == 'predicate'])
+
+        # new nodes
+        self.graph.add_node(self.graph.name+'-semantics-pred-root',
+                            domain='semantics', type='predicate')
+
+        self.graph.add_node(self.graph.name+'-semantics-arg-0',
+                            domain='semantics', type='argument')
+
+        self.graph.add_node(self.graph.name+'-semantics-arg-speaker',
+                            domain='semantics', type='argument')
+
+        self.graph.add_node(self.graph.name+'-semantics-arg-addressee',
+                            domain='semantics', type='argument')
+
+        # new semantics edges
+        for predid in max_preds:
+            self.graph.add_edge(self.graph.name+'-semantics-arg-0',
+                                predid,
+                                domain='semantics', type='head')
+
+        self.graph.add_edge(self.graph.name+'-semantics-pred-root',
+                            self.graph.name+'-semantics-arg-0',
+                            domain='semantics', type='dependency')
+
+        self.graph.add_edge(self.graph.name+'-semantics-pred-root',
+                            self.graph.name+'-semantics-arg-speaker',
+                            domain='semantics', type='dependency')
+
+        self.graph.add_edge(self.graph.name+'-semantics-pred-root',
+                            self.graph.name+'-semantics-arg-addressee',
+                            domain='semantics', type='dependency')
+
+        # new instance edge
+        self.graph.add_edge(self.graph.name+'-semantics-arg-0',
+                            self.graph.name+'-root-0',
+                            domain='interface', type='dependency')
 
     @lru_cache(maxsize=128)
     def query(self, query: Union[str, Query]) -> Result:
