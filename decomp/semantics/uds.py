@@ -140,7 +140,7 @@ class UDSCorpus(PredPattCorpus):
                 self._graphs.update(corp_split._graphs)
 
             else:
-                for fpath in self.__class__.CORPUS_PATHS:
+                for fpath in self.__class__.CORPUS_PATHS.values():
                     corp_split = self.__class__.from_json(fpath)
                     self._graphs.update(corp_split._graphs)
 
@@ -325,9 +325,11 @@ class UDSGraph:
     name
     """
 
-    def __init__(self, graph: DiGraph, name: str = 'UDS'):
+    def __init__(self, graph: DiGraph, name: str):
         self.name = name
         self.graph = graph
+
+        #self.graph._add_performative_nodes()
 
         self.nodes = self.graph.nodes
         self.edges = self.graph.edges
@@ -343,6 +345,9 @@ class UDSGraph:
         """The ID of the graph's root node"""
 
         return list(self.query(ROOT_QUERY))[0][0].toPython()
+
+    def _add_performative_nodes(self):
+        self.graph.add_node(self.graph.name+'-semantics-arg')
 
     @lru_cache(maxsize=128)
     def query(self, query: Union[str, Query]) -> Result:
