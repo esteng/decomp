@@ -4,14 +4,26 @@
 Installation
 ============
 
-Decomp can be installed using ``pip``.
+We recommend building the decomp Docker image from the included
+Dockerfile, which uses `jupyter/scipy-notebook` as its base image.
+
+.. code-block:: bash
+   git clone git://gitlab.hltcoe.jhu.edu/aswhite/decomp.git
+   cd decomp
+   docker build -t decomp .
+   docker run -p 8888:8888 decomp start-notebook.sh
+
+
+A jupyter notebook can then be opened in the standard way.
+
+Decomp can also be installed to a local environment using ``pip``.
 
 .. code-block:: bash
 
    pip install git+git://github.com/decompositional-semantics-initiative/decomp.git --process-dependency-links
 
 
-You can also clone and use the included ``setup.py`` with the ``install`` flag.
+As an alternative to ``pip`` you can clone the decomp repository and use the included ``setup.py`` with the ``install`` flag.
 
 .. code-block:: bash
 
