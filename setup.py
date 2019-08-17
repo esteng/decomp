@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import find_packages, setup
 
 setup(name='Decomp',
       version='1.0',
@@ -8,7 +8,7 @@ setup(name='Decomp',
       author='Aaron Steven White',
       author_email='aaron.white@rochester.edu',
       license='MIT',
-      packages=['decomp'],
+      packages=find_packages(),
       package_dir={'decomp': 'decomp'},
       package_data={'decomp': ['data/*']},
       install_requires=['requests==2.22.0',
