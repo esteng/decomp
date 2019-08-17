@@ -1,0 +1,8 @@
+include decomp/*
+include decomp/data/annotations/*.json
+include docs/*
+include tests/*
+include requirements.txt
+include README.md
+include LICENSE
+include Dockerfile
