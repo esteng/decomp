@@ -20,7 +20,7 @@ Decomp can also be installed to a local environment using ``pip``.
 
 .. code-block:: bash
 
-   pip install git+git://github.com/decompositional-semantics-initiative/decomp.git --process-dependency-links
+   pip install git+git://github.com/decompositional-semantics-initiative/decomp.git
 
 
 As an alternative to ``pip`` you can clone the decomp repository and use the included ``setup.py`` with the ``install`` flag.

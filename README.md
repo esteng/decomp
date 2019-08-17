@@ -20,7 +20,7 @@ If you prefer to install directly to your local environment, simply
 use `pip`.
 
 ```bash
-pip install git+git://gitlab.hltcoe.jhu.edu/aswhite/decomp.git --process-dependency-links
+pip install git+git://gitlab.hltcoe.jhu.edu/aswhite/decomp.git
 ```
 
 You can also clone and use the included `setup.py`.
