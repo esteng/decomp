@@ -12,3 +12,5 @@ COPY . .
 RUN pip install --user --no-cache-dir .
 
 WORKDIR /home/jovyan/
+
+RUN python -c "from decomp import uds"
