@@ -8,7 +8,8 @@ We recommend building the decomp Docker image from the included
 Dockerfile, which uses `jupyter/scipy-notebook` as its base image.
 
 .. code-block:: bash
-   git clone git://gitlab.hltcoe.jhu.edu/aswhite/decomp.git
+
+   git clone git://github.com/decompositional-semantics-initiative/decomp.git
    cd decomp
    docker build -t decomp .
    docker run -p 8888:8888 decomp start-notebook.sh
