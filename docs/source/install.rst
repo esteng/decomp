@@ -5,7 +5,9 @@ Installation
 ============
 
 We recommend building the decomp Docker image from the included
-Dockerfile, which uses `jupyter/scipy-notebook` as its base image.
+Dockerfile, which uses `jupyter/scipy-notebook`_ as its base image.
+
+.. _jupyter/scipy-notebook: https://hub.docker.com/r/jupyter/scipy-notebook/
 
 .. code-block:: bash
 
@@ -14,7 +16,7 @@ Dockerfile, which uses `jupyter/scipy-notebook` as its base image.
    docker build -t decomp .
    docker run -p 8888:8888 decomp start-notebook.sh
 
-
+   
 A jupyter notebook can then be opened in the standard way.
 
 Decomp can also be installed to a local environment using ``pip``.
