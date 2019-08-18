@@ -357,39 +357,48 @@ class UDSGraph:
 
         # new nodes
         self.graph.add_node(self.graph.name+'-semantics-pred-root',
-                            domain='semantics', type='predicate')
+                            domain='semantics', type='predicate',
+                            frompredpatt=False)
 
         self.graph.add_node(self.graph.name+'-semantics-arg-0',
-                            domain='semantics', type='argument')
+                            domain='semantics', type='argument',
+                            frompredpatt=False)
 
         self.graph.add_node(self.graph.name+'-semantics-arg-speaker',
-                            domain='semantics', type='argument')
+                            domain='semantics', type='argument',
+                            frompredpatt=False)
 
         self.graph.add_node(self.graph.name+'-semantics-arg-addressee',
-                            domain='semantics', type='argument')
+                            domain='semantics', type='argument',
+                            frompredpatt=False)
 
         # new semantics edges
         for predid in max_preds:
             self.graph.add_edge(self.graph.name+'-semantics-arg-0',
                                 predid,
-                                domain='semantics', type='head')
+                                domain='semantics', type='head',
+                                frompredpatt=False)
 
         self.graph.add_edge(self.graph.name+'-semantics-pred-root',
                             self.graph.name+'-semantics-arg-0',
-                            domain='semantics', type='dependency')
+                            domain='semantics', type='dependency',
+                            frompredpatt=False)
 
         self.graph.add_edge(self.graph.name+'-semantics-pred-root',
                             self.graph.name+'-semantics-arg-speaker',
-                            domain='semantics', type='dependency')
+                            domain='semantics', type='dependency',
+                            frompredpatt=False)
 
         self.graph.add_edge(self.graph.name+'-semantics-pred-root',
                             self.graph.name+'-semantics-arg-addressee',
-                            domain='semantics', type='dependency')
+                            domain='semantics', type='dependency',
+                            frompredpatt=False)
 
         # new instance edge
         self.graph.add_edge(self.graph.name+'-semantics-arg-0',
                             self.graph.name+'-root-0',
-                            domain='interface', type='dependency')
+                            domain='interface', type='dependency',
+                            frompredpatt=False)
 
     @lru_cache(maxsize=128)
     def query(self, query: Union[str, Query]) -> Result:
