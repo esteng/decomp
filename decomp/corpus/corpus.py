@@ -3,7 +3,7 @@
 from abc import ABCMeta, abstractmethod
 
 from random import choices
-from warnings import warn
+from logging import warning
 from typing import Dict, List, Tuple, Iterable, Hashable, Any, TypeVar
 
 InGraph = TypeVar('InGraph')  # the input graph type
@@ -47,9 +47,9 @@ class Corpus(metaclass=ABCMeta):
             try:
                 self._graphs[graphid] = self._graphbuilder(graphid, rawgraph)
             except ValueError:
-                warn(graphid+' has no or multiple root nodes')
+                warning(graphid+' has no or multiple root nodes')
             except RecursionError:
-                warn(graphid+' has loops')
+                warning(graphid+' has loops')
 
     @abstractmethod
     def _graphbuilder(self,
