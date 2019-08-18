@@ -201,16 +201,15 @@ class UDSCorpus(PredPattCorpus):
 
         This method should only be used if the UDS corpus is being
         (re)built. Otherwise, loading the corpus from the JSON shipped
-        with this package using UDSCorpus.from_json is suggested.
+        with this package using UDSCorpus.__init__ or
+        UDSCorpus.from_json is suggested.
 
         Parameters
         ----------
         corpus
             (path to) Universal Dependencies corpus in conllu format
         annotations
-            (paths to) annotations in JSON; in most cases, no such
-            paths/annotations will be passed, since the standard UDS
-            annotations are automatically loaded
+            (paths to) annotations in JSON
         name
             corpus name to be appended to the beginning of graph ids
         """
