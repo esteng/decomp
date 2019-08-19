@@ -104,7 +104,7 @@ minutes, you could use:
                     }
               """
 
-   results = {graph.query(querystr, query_type='node') for gid, graph in uds.items()}
+   results = {gid: graph.query(querystr, query_type='node') for gid, graph in uds.items()}
 
 Note that the ``query_type`` parameter is set to ``'node'``. This setting means that a dictionary mapping node identifiers to node attribute values will be returned. If no such query type is passed, an RDFLib `Result`_ object will be returned, which you will need to postprocess yourself. This is necessary if, for instance, you are making a ``CONSTRUCT``, ``ASK``, or ``DESCRIBE`` query.
 
@@ -130,7 +130,7 @@ Constraints can also make reference to node and edge attributes of other nodes. 
                     }
               """
 
-   results = {graph.query(querystr, query_type='node') for gid, graph in uds.items()}	      
+   results = {gid: graph.query(querystr, query_type='node') for gid, graph in uds.items()}	      
 		
 Disjunctive constraints are also possible. For instance, for the last query, if you were interested in either volitional or sentient arguments, you could use:
 
@@ -156,7 +156,7 @@ Disjunctive constraints are also possible. For instance, for the last query, if 
                     }
               """
 
-   results = {graph.query(querystr, query_type='node') for gid, graph in uds.items()}
+   results = {gid: graph.query(querystr, query_type='node') for gid, graph in uds.items()}
   
 Beyond returning node attributes based on complex constraints, you can also return edge attributes. For instance, for the last query, if you were interested in all the attributes of edges connecting predicates and arguments satisfying the constraints of the last query, you could simply change which variable is bound by ``SELECT`` and set ``query_type`` to ``'edge'``.
 
@@ -182,4 +182,4 @@ Beyond returning node attributes based on complex constraints, you can also retu
                     }
               """
 
-   results = {graph.query(querystr, query_type='edge') for gid, graph in uds.items()}
+   results = {gid: graph.query(querystr, query_type='edge') for gid, graph in uds.items()}
