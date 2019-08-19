@@ -24,6 +24,9 @@ built dataset is cached.
 .. _Universal Dependencies English Web Treebank: https://github.com/UniversalDependencies/UD_English-EWT
 .. _UDS annotations: http://decomp.io/data/
 
+Standard splits
+---------------
+
 If you would rather read only the graphs in the training, development,
 or test split, you can do that by specifying the ``split`` parameter
 of ``UDSCorpus``.
@@ -35,16 +38,19 @@ of ``UDSCorpus``.
    # read the train split of the UDS corpus
    uds_train = UDSCorpus(split='train')
 
+Adding annotations
+------------------
+   
 Additional annotations beyond the standard UDS annotations can be
 added using this method by passing a list of `UDSAnnotation`_
 objects. ``UDSAnnotation`` objects are loaded from JSON-formatted
-files that represent a dictionary mapping node identifiers or pairs of
-node identifiers separated by a ``_`` to a dictionary of
-attribute-value pairs. For example, if you have some additional
-annotations in a file ``new_annotations.json``, those can be added to
-the existing UDS annotations using:
+files (see `from_json`_ for formatting guidelines). For example, if
+you have some additional annotations in a file
+``new_annotations.json``, those can be added to the existing UDS
+annotations using:
 
 .. _UDSAnnotation: ../package/decomp.semantics.uds.html#decomp.semantics.uds.UDSAnnotation
+.. _from_json: ../package/decomp.semantics.uds.html#decomp.semantics.uds.UDSAnnotation.from_json
 
 .. code-block:: python
 
@@ -58,10 +64,14 @@ Importantly, these annotations are added *in addition* to the existing
 UDS annotations that ship with the toolkit. You do not need to add
 these manually.
 
+Reading from an alternative location
+------------------------------------
+
 If you would like to read the dataset from an alternative
 location—e.g. if you have serialized the dataset to JSON, using the
 `to_json`_ instance method—this can be accomplished using
-``UDSCorpus`` class methods. For example, if you serialize
+``UDSCorpus`` class methods (see :doc:`serializing` for more
+information on serialization). For example, if you serialize
 ``uds_train`` to a file ``uds-ewt-train.json``, you can read it back
 into memory using:
 
@@ -75,14 +85,19 @@ into memory using:
    # read JSON serialized uds_train
    uds_train = UDSCorpus.from_json("uds-ewt-train.json")   
 
+Rebuilding the corpus
+---------------------
+   
 If you would like to rebuild the corpus from the UD-EWT CoNLL files
 and some set of JSON-formatted annotation files, you can use the
-analogous ``from_conll`` class method. Importantly, unlike the
+analogous `from_conll`_ class method. Importantly, unlike the
 standard instance initialization described above, the UDS annotations
 are *not* automatically added. For example, if ``en-ud-train.conllu``
 is in the current working directory and you have already loaded
 ``new_annotations`` as above, a corpus containing only those
 annotations (without the UDS annotations) can be loaded using:
+
+.. _from_conll: ../package/decomp.semantics.uds.html#decomp.semantics.uds.UDSCorpus.from_conll
 
 .. code-block:: python
 
@@ -97,3 +112,6 @@ class method to load them.
 
    # read the train split of the UD corpus
    ud_train = UDSCorpus.from_conll("en-ud-train.conllu")   
+
+Though other serialization formats are available (see
+:doc:`serializing`), these formats are not yet supported for reading.

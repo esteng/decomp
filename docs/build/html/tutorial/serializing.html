@@ -36,7 +36,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Dataset Reference" href="../data/index.html" />
-    <link rel="prev" title="Visualizing UDS Graphs" href="visualizing.html" /> 
+    <link rel="prev" title="Querying UDS Graphs" href="querying.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -87,7 +87,6 @@
 <li class="toctree-l2"><a class="reference internal" href="quick-start.html">Quick Start</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reading.html">Reading the UDS dataset</a></li>
 <li class="toctree-l2"><a class="reference internal" href="querying.html">Querying UDS Graphs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="visualizing.html">Visualizing UDS Graphs</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Serializing the UDS dataset</a></li>
 </ul>
 </li>
@@ -161,6 +160,30 @@
             
   <div class="section" id="serializing-the-uds-dataset">
 <h1>Serializing the UDS dataset<a class="headerlink" href="#serializing-the-uds-dataset" title="Permalink to this headline">¶</a></h1>
+<p>The canonical serialization format for the Universal Decompositional
+Semantics (UDS) dataset is JSON. For examples, if you would like to
+serialize the entire UDS dataset to a file <code class="docutils literal notranslate"><span class="pre">uds-ewt.json</span></code>, you can
+use:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">decomp</span> <span class="kn">import</span> <span class="n">uds</span>
+
+<span class="n">uds</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">&quot;uds-ewt.json&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The particular format is based directly on the <a class="reference external" href="https://networkx.github.io/documentation/stable/reference/readwrite/generated/networkx.readwrite.json_graph.adjacency_data.html#networkx.readwrite.json_graph.adjacency_data">adjacency_data</a>
+method implemented in <a class="reference external" href="https://github.com/networkx/networkx">NetworkX</a></p>
+<p>In addition to this JSON format, any serialization format supported by
+<a class="reference external" href="https://github.com/RDFLib/rdflib">RDFLib</a> can also be used by accessing the <a class="reference external" href="../package/decomp.semantics.uds.html#decomp.semantics.uds.UDSGraph.rdf">rdf</a> attribute of each
+<a class="reference external" href="../package/decomp.semantics.uds.html#decomp.semantics.uds.UDSGraph">UDSGraph</a> object. This attribute exposes an <a class="reference external" href="https://rdflib.readthedocs.io/en/stable/apidocs/rdflib.html#graph-module">rdflib.graph.Graph</a>
+object, which implements a <a class="reference external" href="https://rdflib.readthedocs.io/en/stable/apidocs/rdflib.html#rdflib.graph.Graph.serialize">serialize</a> method. By default, this
+method outputs rdf/xml. The <code class="docutils literal notranslate"><span class="pre">format</span></code> parameter can also be set to
+<code class="docutils literal notranslate"><span class="pre">'n3'</span></code>, <code class="docutils literal notranslate"><span class="pre">'turtle'</span></code>, <code class="docutils literal notranslate"><span class="pre">'nt'</span></code>, <code class="docutils literal notranslate"><span class="pre">'pretty-xml'</span></code>, <code class="docutils literal notranslate"><span class="pre">'trix'</span></code>,
+<code class="docutils literal notranslate"><span class="pre">'trig'</span></code>, or <code class="docutils literal notranslate"><span class="pre">'nquads'</span></code>; and additional formats, such as JSON-LD,
+can be supported by installing plugins for RDFLib.</p>
+<p>Before considering serialization to such a format, be aware that only
+the JSON format mentioned above can be read by the
+toolkit. Additionally, note that if your aim is to query the graphs in
+the corpus, this can be done using the <a class="reference external" href="../package/decomp.semantics.uds.html#decomp.semantics.uds.UDSGraph.query">query</a> instance method in
+<code class="docutils literal notranslate"><span class="pre">UDSGraph</span></code>. See <a class="reference internal" href="querying.html"><span class="doc">Querying UDS Graphs</span></a> for details.</p>
 </div>
 
 
@@ -174,7 +197,7 @@
         <a href="../data/index.html" class="btn btn-neutral float-right" title="Dataset Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="visualizing.html" class="btn btn-neutral float-left" title="Visualizing UDS Graphs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="querying.html" class="btn btn-neutral float-left" title="Querying UDS Graphs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

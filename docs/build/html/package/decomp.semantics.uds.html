@@ -219,7 +219,7 @@ all edges that touch it</p>
 
 <dl class="class">
 <dt id="decomp.semantics.uds.UDSCorpus">
-<em class="property">class </em><code class="sig-prename descclassname">decomp.semantics.uds.</code><code class="sig-name descname">UDSCorpus</code><span class="sig-paren">(</span><em class="sig-param">graphs=None, annotations=[&lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;, &lt;decomp.semantics.uds.UDSAnnotation object&gt;], splitname=None</em><span class="sig-paren">)</span><a class="headerlink" href="#decomp.semantics.uds.UDSCorpus" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">decomp.semantics.uds.</code><code class="sig-name descname">UDSCorpus</code><span class="sig-paren">(</span><em class="sig-param">graphs=None</em>, <em class="sig-param">annotations=[]</em>, <em class="sig-param">split=None</em><span class="sig-paren">)</span><a class="headerlink" href="#decomp.semantics.uds.UDSCorpus" title="Permalink to this definition">¶</a></dt>
 <dd><p>Container for collection of Universal Decompositional Semantics graphs</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -228,7 +228,7 @@ all edges that touch it</p>
 <li><p><strong>annotations</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference internal" href="#decomp.semantics.uds.UDSAnnotation" title="decomp.semantics.uds.UDSAnnotation"><code class="xref py py-class docutils literal notranslate"><span class="pre">UDSAnnotation</span></code></a>]) – additional annotations to associate with predpatt nodes; in
 most cases, no such annotations will be passed, since the
 standard UDS annotations are automatically loaded</p></li>
-<li><p><strong>splitname</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – the split to load: “train”, “dev”, or “test”</p></li>
+<li><p><strong>split</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – the split to load: “train”, “dev”, or “test”</p></li>
 </ul>
 </dd>
 </dl>
@@ -264,14 +264,13 @@ standard UDS annotations are automatically loaded</p></li>
 <dd><p>Load UDS graph corpus from CoNLL (dependencies) and JSON (annotations)</p>
 <p>This method should only be used if the UDS corpus is being
 (re)built. Otherwise, loading the corpus from the JSON shipped
-with this package using UDSCorpus.from_json is suggested.</p>
+with this package using UDSCorpus.__init__ or
+UDSCorpus.from_json is suggested.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>corpus</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Textio</span></code>]) – (path to) Universal Dependencies corpus in conllu format</p></li>
-<li><p><strong>annotations</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Textio</span></code>]]) – (paths to) annotations in JSON; in most cases, no such
-paths/annotations will be passed, since the standard UDS
-annotations are automatically loaded</p></li>
+<li><p><strong>annotations</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Textio</span></code>]]) – (paths to) annotations in JSON</p></li>
 <li><p><strong>name</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – corpus name to be appended to the beginning of graph ids</p></li>
 </ul>
 </dd>
@@ -321,7 +320,7 @@ in JSON format</p>
 
 <dl class="class">
 <dt id="decomp.semantics.uds.UDSGraph">
-<em class="property">class </em><code class="sig-prename descclassname">decomp.semantics.uds.</code><code class="sig-name descname">UDSGraph</code><span class="sig-paren">(</span><em class="sig-param">graph</em>, <em class="sig-param">name='UDS'</em><span class="sig-paren">)</span><a class="headerlink" href="#decomp.semantics.uds.UDSGraph" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">decomp.semantics.uds.</code><code class="sig-name descname">UDSGraph</code><span class="sig-paren">(</span><em class="sig-param">graph</em>, <em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#decomp.semantics.uds.UDSGraph" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class for representing Universal Decompositional Semantics graphs</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -333,13 +332,17 @@ in JSON format</p>
 </dl>
 <dl class="method">
 <dt id="decomp.semantics.uds.UDSGraph.add_annotation">
-<code class="sig-name descname">add_annotation</code><span class="sig-paren">(</span><em class="sig-param">node_attrs</em>, <em class="sig-param">edge_attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#decomp.semantics.uds.UDSGraph.add_annotation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">add_annotation</code><span class="sig-paren">(</span><em class="sig-param">node_attrs</em>, <em class="sig-param">edge_attrs</em>, <em class="sig-param">add_heads=True</em>, <em class="sig-param">add_subargs=False</em>, <em class="sig-param">add_subpreds=False</em>, <em class="sig-param">add_orphans=False</em><span class="sig-paren">)</span><a class="headerlink" href="#decomp.semantics.uds.UDSGraph.add_annotation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add node and or edge annotations to the graph</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>node_attrs</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – </p></li>
-<li><p><strong>edge_attrs</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – </p></li>
+<li><p><strong>node_attrs</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]) – </p></li>
+<li><p><strong>edge_attrs</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]) – </p></li>
+<li><p><strong>add_heads</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – </p></li>
+<li><p><strong>add_subargs</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – </p></li>
+<li><p><strong>add_subpreds</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – </p></li>
+<li><p><strong>add_orphans</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – </p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
@@ -468,17 +471,23 @@ in JSON format</p>
 
 <dl class="attribute">
 <dt id="decomp.semantics.uds.UDSGraph.query">
-<code class="sig-name descname">query</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">query</em><span class="sig-paren">)</span><a class="headerlink" href="#decomp.semantics.uds.UDSGraph.query" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">query</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">query</em>, <em class="sig-param">query_type=None</em>, <em class="sig-param">cache_query=True</em><span class="sig-paren">)</span><a class="headerlink" href="#decomp.semantics.uds.UDSGraph.query" title="Permalink to this definition">¶</a></dt>
 <dd><p>Query graph using SPARQL 1.1 SELECT</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>query</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Query</span></code>]) – a SPARQL 1.1 SELECT query</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>query</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Query</span></code>]) – a SPARQL 1.1 query</p></li>
+<li><p><strong>query_type</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – whether this is a ‘node’ query or ‘edge’ query. If set to
+None (default), a Results objects will be returned. The
+main reason to use this option is to automatically format
+the output of a custom query, since Results objects
+require additional postprocessing.</p></li>
+<li><p><strong>cache_query</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – whether to cache the query; false when querying
+particular nodes or edges using precompiled queries</p></li>
+</ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>list(tuple)</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Result</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]]</p>
 </dd>
 </dl>
 </dd></dl>

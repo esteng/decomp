@@ -152,11 +152,20 @@
             
   <div class="section" id="installation">
 <span id="install"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
-<p>Decomp can be installed using <code class="docutils literal notranslate"><span class="pre">pip</span></code>.</p>
+<p>We recommend building the decomp Docker image from the included
+Dockerfile, which uses <a class="reference external" href="https://hub.docker.com/r/jupyter/scipy-notebook/">jupyter/scipy-notebook</a> as its base image.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone git://github.com/decompositional-semantics-initiative/decomp.git
+<span class="nb">cd</span> decomp
+docker build -t decomp .
+docker run -p <span class="m">8888</span>:8888 decomp start-notebook.sh
+</pre></div>
+</div>
+<p>A jupyter notebook can then be opened in the standard way.</p>
+<p>Decomp can also be installed to a local environment using <code class="docutils literal notranslate"><span class="pre">pip</span></code>.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install git+git://github.com/decompositional-semantics-initiative/decomp.git
 </pre></div>
 </div>
-<p>You can also clone and use the included <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> with the <code class="docutils literal notranslate"><span class="pre">install</span></code> flag.</p>
+<p>As an alternative to <code class="docutils literal notranslate"><span class="pre">pip</span></code> you can clone the decomp repository and use the included <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> with the <code class="docutils literal notranslate"><span class="pre">install</span></code> flag.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/decompositional-semantics-initiative/decomp.git
 <span class="nb">cd</span> decomp
 python setup.py install

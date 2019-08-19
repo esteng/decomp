@@ -85,9 +85,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Tutorials</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="quick-start.html">Quick Start</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Reading the UDS dataset</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Reading the UDS dataset</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#standard-splits">Standard splits</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adding-annotations">Adding annotations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#reading-from-an-alternative-location">Reading from an alternative location</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rebuilding-the-corpus">Rebuilding the corpus</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="querying.html">Querying UDS Graphs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="visualizing.html">Visualizing UDS Graphs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="serializing.html">Serializing the UDS dataset</a></li>
 </ul>
 </li>
@@ -161,6 +166,93 @@
             
   <div class="section" id="reading-the-uds-dataset">
 <h1>Reading the UDS dataset<a class="headerlink" href="#reading-the-uds-dataset" title="Permalink to this headline">¶</a></h1>
+<p>The most straightforward way to read the Universal Decompositional
+Semantics (UDS) dataset is to import it.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">decomp</span> <span class="kn">import</span> <span class="n">uds</span>
+</pre></div>
+</div>
+<p>This imports a <a class="reference external" href="../package/decomp.semantics.uds.html#decomp.semantics.uds.UDSCorpus">UDSCorpus</a> object <code class="docutils literal notranslate"><span class="pre">uds</span></code>, which contains all
+graphs across all splits in the data.</p>
+<p>As noted in <a class="reference internal" href="quick-start.html"><span class="doc">Quick Start</span></a>, the first time you do this import, it
+will take several minutes to complete while the dataset is built from
+the <a class="reference external" href="https://github.com/UniversalDependencies/UD_English-EWT">Universal Dependencies English Web Treebank</a> (UD-EWT), which is not
+shipped with the package (but is downloaded automatically on import in
+the background), and the <a class="reference external" href="http://decomp.io/data/">UDS annotations</a>, which are shipped with
+the package as package data. Subsequent uses will be faster, since the
+built dataset is cached.</p>
+<div class="section" id="standard-splits">
+<h2>Standard splits<a class="headerlink" href="#standard-splits" title="Permalink to this headline">¶</a></h2>
+<p>If you would rather read only the graphs in the training, development,
+or test split, you can do that by specifying the <code class="docutils literal notranslate"><span class="pre">split</span></code> parameter
+of <code class="docutils literal notranslate"><span class="pre">UDSCorpus</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">decomp</span> <span class="kn">import</span> <span class="n">UDSCorpus</span>
+
+<span class="c1"># read the train split of the UDS corpus</span>
+<span class="n">uds_train</span> <span class="o">=</span> <span class="n">UDSCorpus</span><span class="p">(</span><span class="n">split</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="adding-annotations">
+<h2>Adding annotations<a class="headerlink" href="#adding-annotations" title="Permalink to this headline">¶</a></h2>
+<p>Additional annotations beyond the standard UDS annotations can be
+added using this method by passing a list of <a class="reference external" href="../package/decomp.semantics.uds.html#decomp.semantics.uds.UDSAnnotation">UDSAnnotation</a>
+objects. <code class="docutils literal notranslate"><span class="pre">UDSAnnotation</span></code> objects are loaded from JSON-formatted
+files (see <a class="reference external" href="../package/decomp.semantics.uds.html#decomp.semantics.uds.UDSAnnotation.from_json">from_json</a> for formatting guidelines). For example, if
+you have some additional annotations in a file
+<code class="docutils literal notranslate"><span class="pre">new_annotations.json</span></code>, those can be added to the existing UDS
+annotations using:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># read annotations</span>
+<span class="n">new_annotations</span> <span class="o">=</span> <span class="p">[</span><span class="n">UDSAnnotation</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="s2">&quot;new_annotations.json&quot;</span><span class="p">)]</span>
+
+<span class="c1"># read the train split of the UDS corpus and append new annotations</span>
+<span class="n">uds_train_plus</span> <span class="o">=</span> <span class="n">UDSCorpus</span><span class="p">(</span><span class="n">split</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="n">annotations</span><span class="o">=</span><span class="n">new_annotations</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Importantly, these annotations are added <em>in addition</em> to the existing
+UDS annotations that ship with the toolkit. You do not need to add
+these manually.</p>
+</div>
+<div class="section" id="reading-from-an-alternative-location">
+<h2>Reading from an alternative location<a class="headerlink" href="#reading-from-an-alternative-location" title="Permalink to this headline">¶</a></h2>
+<p>If you would like to read the dataset from an alternative
+location—e.g. if you have serialized the dataset to JSON, using the
+<a class="reference external" href="../package/decomp.semantics.uds.html#decomp.semantics.uds.UDSCorpus.to_json">to_json</a> instance method—this can be accomplished using
+<code class="docutils literal notranslate"><span class="pre">UDSCorpus</span></code> class methods (see <a class="reference internal" href="serializing.html"><span class="doc">Serializing the UDS dataset</span></a> for more
+information on serialization). For example, if you serialize
+<code class="docutils literal notranslate"><span class="pre">uds_train</span></code> to a file <code class="docutils literal notranslate"><span class="pre">uds-ewt-train.json</span></code>, you can read it back
+into memory using:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># serialize uds_train to JSON</span>
+<span class="n">uds_train</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">&quot;uds-ewt-train.json&quot;</span><span class="p">)</span>
+
+<span class="c1"># read JSON serialized uds_train</span>
+<span class="n">uds_train</span> <span class="o">=</span> <span class="n">UDSCorpus</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="s2">&quot;uds-ewt-train.json&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="rebuilding-the-corpus">
+<h2>Rebuilding the corpus<a class="headerlink" href="#rebuilding-the-corpus" title="Permalink to this headline">¶</a></h2>
+<p>If you would like to rebuild the corpus from the UD-EWT CoNLL files
+and some set of JSON-formatted annotation files, you can use the
+analogous <a class="reference external" href="../package/decomp.semantics.uds.html#decomp.semantics.uds.UDSCorpus.from_conll">from_conll</a> class method. Importantly, unlike the
+standard instance initialization described above, the UDS annotations
+are <em>not</em> automatically added. For example, if <code class="docutils literal notranslate"><span class="pre">en-ud-train.conllu</span></code>
+is in the current working directory and you have already loaded
+<code class="docutils literal notranslate"><span class="pre">new_annotations</span></code> as above, a corpus containing only those
+annotations (without the UDS annotations) can be loaded using:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># read the train split of the UD corpus and append new annotations</span>
+<span class="n">ud_train_annotated</span> <span class="o">=</span> <span class="n">UDSCorpus</span><span class="o">.</span><span class="n">from_conll</span><span class="p">(</span><span class="s2">&quot;en-ud-train.conllu&quot;</span><span class="p">,</span> <span class="n">new_annotations</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This also means that if you only want the semantic graphs as implied
+by PredPatt (without annotations), you can use the <code class="docutils literal notranslate"><span class="pre">from_conll</span></code>
+class method to load them.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># read the train split of the UD corpus</span>
+<span class="n">ud_train</span> <span class="o">=</span> <span class="n">UDSCorpus</span><span class="o">.</span><span class="n">from_conll</span><span class="p">(</span><span class="s2">&quot;en-ud-train.conllu&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Though other serialization formats are available (see
+<a class="reference internal" href="serializing.html"><span class="doc">Serializing the UDS dataset</span></a>), these formats are not yet supported for reading.</p>
+</div>
 </div>
 
 

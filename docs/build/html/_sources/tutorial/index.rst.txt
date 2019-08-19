@@ -10,6 +10,5 @@ package, follow those instructions before continuing the tutorial.
 
    quick-start
    reading
-   querying
-   visualizing
+   querying   
    serializing
