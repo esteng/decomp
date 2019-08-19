@@ -28,76 +28,6 @@ from networkx import DiGraph, adjacency_data, adjacency_graph
 from .predpatt import PredPattCorpus
 from ..graph import RDFConverter
 
-ROOT_QUERY = prepareQuery("""
-                          SELECT ?n
-                          WHERE { ?n <type> <root> .
-                                }
-                          """)
-
-SYNTAX_NODES_QUERY = prepareQuery("""
-                                  SELECT ?n
-                                  WHERE { ?n <domain> <syntax> .
-                                          ?n <type> <token> .
-                                        }
-                                  """)
-
-SEMANTICS_NODES_QUERY = prepareQuery("""
-                                     SELECT ?n
-                                     WHERE { ?n <domain> <semantics> .
-                                             { ?n <type> <predicate> .
-                                             } UNION
-                                             { ?n <type> <argument> .
-                                             }
-                                           }
-                                     """)
-
-PREDICATE_NODES_QUERY = prepareQuery("""
-                                     SELECT ?n
-                                     WHERE { ?n <domain> <semantics> .
-                                             ?n <type> <predicate> .
-                                           }
-                                     """)
-
-ARGUMENT_NODES_QUERY = prepareQuery("""
-                                    SELECT ?n
-                                    WHERE { ?n <domain> <semantics> .
-                                            ?n <type> <argument> .
-                                          }
-                                    """)
-
-SEMANTICS_EDGES_DEFAULT_QUERY = prepareQuery("""
-                                             SELECT ?e
-                                             WHERE { ?e <domain> <semantics> .
-                                                   { ?e <type> <dependency> .
-                                                   } UNION
-                                                   { ?e <type> <head> .
-                                                   }
-                                                   }
-                                             """)
-
-ARGUMENT_EDGES_DEFAULT_QUERY = prepareQuery("""
-                                            SELECT ?e
-                                            WHERE { ?n1 ?e ?n2 .
-                                                    ?e <domain> <semantics> .
-                                                    ?e <type> <dependency> .
-                                                  }
-                                            """)
-
-ARGUMENT_HEAD_EDGES_DEFAULT_QUERY = prepareQuery("""
-                                             SELECT ?e
-                                             WHERE { ?n1 ?e ?n2 .
-                                                     ?e <domain> <semantics> .
-                                                     ?e <type> <head> .
-                                                   }
-                                                 """)
-
-SYNTAX_EDGES_DEFAULT_QUERY = prepareQuery("""
-                                          SELECT ?e
-                                          WHERE { ?e <domain> <syntax> .
-                                                  ?e <type> <dependency> .
-                                                }
-                                          """)
-
 
 class UDSCorpus(PredPattCorpus):
     """Container for collection of Universal Decompositional Semantics graphs
@@ -324,6 +254,8 @@ class UDSGraph:
     name
     """
 
+    QUERIES = {}
+
     def __init__(self, graph: DiGraph, name: str):
         self.name = name
         self.graph = graph
@@ -343,7 +275,13 @@ class UDSGraph:
     def rootid(self):
         """The ID of the graph's root node"""
 
-        return list(self.query(ROOT_QUERY))[0][0].toPython()
+        querystr = """
+                   SELECT ?n
+                   WHERE { ?n <type> <root> .
+                         }
+                   """
+
+        return list(self.query(querystr))[0][0].toPython()
 
     def _add_performative_nodes(self):
         # used instead of the predicate_nodes attribute to speed up
@@ -400,42 +338,84 @@ class UDSGraph:
                             frompredpatt=False)
 
     @lru_cache(maxsize=128)
-    def query(self, query: Union[str, Query]) -> Result:
+    def query(self, query: Union[str, Query],
+              query_type: Optional[str] = None,
+              cache_query: bool = True) -> Union[Result,
+                                                 Dict[str,
+                                                      Dict[str, Any]]]:
         """Query graph using SPARQL 1.1 SELECT
 
         Parameters
         ----------
         query
-            a SPARQL 1.1 SELECT query
-
-        Returns
-        -------
-        list(tuple)
+            a SPARQL 1.1 query
+        query_type
+            whether this is a 'node' query or 'edge' query. If set to
+            None (default), a Results objects will be returned. The
+            main reason to use this option is to automatically format
+            the output of a custom query, since Results objects
+            require additional postprocessing.
+        cache_query
+            whether to cache the query; false when querying
+            particular nodes or edges using precompiled queries
         """
 
         try:
-            results = self.rdf.query(query)
+            if isinstance(query, str) and cache_query:
+                if query not in self.__class__.QUERIES:
+                    self.__class__.QUERIES[query] = prepareQuery(query)
+
+                query = self.__class__.QUERIES[query]
+
+            if query_type == 'node':
+                results = self._node_query(query,
+                                           cache_query=cache_query)
+
+            elif query_type == 'edge':
+                results = self._edge_query(query,
+                                           cache_query=cache_query)
+
+            else:
+                results = self.rdf.query(query)
+
         except ParseException:
             errmsg = 'invalid SPARQL 1.1 query'
             raise ValueError(errmsg)
 
         return results
 
-    def _node_query(self, query: Union[str, Query]) -> Dict[str,
-                                                            Dict[str, Any]]:
+    def _node_query(self, query: Union[str, Query],
+                    cache_query: bool) -> Dict[str,
+                                               Dict[str, Any]]:
 
-        results = [r[0].toPython() for r in self.query(query)]
+        results = [r[0].toPython()
+                   for r in self.query(query,
+                                       cache_query=cache_query)]
 
-        return {nodeid: self.nodes[nodeid] for nodeid in results}
+        try:
+            return {nodeid: self.nodes[nodeid] for nodeid in results}
+        except KeyError:
+            errmsg = 'invalid node query: your query must be guaranteed ' +\
+                     'to capture only nodes, but it appears to also ' +\
+                     'capture edges and/or properties'
+            raise ValueError(errmsg)
 
-    def _edge_query(self, query: Union[str, Query]) -> Dict[Tuple[str, str],
-                                                            Dict[str, Any]]:
+    def _edge_query(self, query: Union[str, Query],
+                    cache_query: bool) -> Dict[Tuple[str, str],
+                                               Dict[str, Any]]:
 
         results = [tuple(edge[0].toPython().split('%%'))
-                   for edge in self.query(query)]
+                   for edge in self.query(query,
+                                          cache_query=cache_query)]
 
-        return {edge: self.edges[edge]
-                for edge in results}
+        try:
+            return {edge: self.edges[edge]
+                    for edge in results}
+        except KeyError:
+            errmsg = 'invalid edge query: your query must be guaranteed ' +\
+                     'to capture only edges, but it appears to also ' +\
+                     'capture nodes and/or properties'
+            raise ValueError(errmsg)
 
     @memoized_property
     def sentence(self) -> str:
@@ -447,25 +427,56 @@ class UDSGraph:
     def syntax_nodes(self) -> Dict[str, Dict[str, Any]]:
         """The syntax nodes in the graph"""
 
-        return self._node_query(SYNTAX_NODES_QUERY)
+        querystr = """
+                   SELECT ?n
+                   WHERE { ?n <domain> <syntax> .
+                           ?n <type> <token> .
+                         }
+                   """
+
+        return self._node_query(querystr, cache_query=True)
 
     @memoized_property
     def semantics_nodes(self) -> Dict[str, Dict[str, Any]]:
         """The semantics nodes in the graph"""
 
-        return self._node_query(SEMANTICS_NODES_QUERY)
+        querystr = """
+                   SELECT ?n
+                   WHERE { ?n <domain> <semantics> .
+                           { ?n <type> <predicate> .
+                           } UNION
+                           { ?n <type> <argument> .
+                           }
+                         }
+                   """
+
+        return self._node_query(querystr, cache_query=True)
 
     @memoized_property
     def predicate_nodes(self) -> Dict[str, Dict[str, Any]]:
         """The predicate (semantics) nodes in the graph"""
 
-        return self._node_query(PREDICATE_NODES_QUERY)
+        querystr = """
+                   SELECT ?n
+                   WHERE { ?n <domain> <semantics> .
+                           ?n <type> <predicate> .
+                         }
+                   """
+
+        return self._node_query(querystr, cache_query=True)
 
     @memoized_property
     def argument_nodes(self) -> Dict[str, Dict[str, Any]]:
         """The argument (semantics) nodes in the graph"""
 
-        return self._node_query(ARGUMENT_NODES_QUERY)
+        querystr = """
+                   SELECT ?n
+                   WHERE { ?n <domain> <semantics> .
+                           ?n <type> <argument> .
+                         }
+                   """
+
+        return self._node_query(querystr, cache_query=True)
 
     @memoized_property
     def syntax_subgraph(self) -> DiGraph:
@@ -486,7 +497,15 @@ class UDSGraph:
         """The edges between semantics nodes"""
 
         if nodeid is None:
-            querystr = SEMANTICS_EDGES_DEFAULT_QUERY
+            querystr = """
+                       SELECT ?e
+                       WHERE { ?e <domain> <semantics> .
+                               { ?e <type> <dependency> .
+                               } UNION
+                               { ?e <type> <head> .
+                               }
+                             }
+                       """
 
         else:
             querystr = """
@@ -503,7 +522,7 @@ class UDSGraph:
                              }
                        """
 
-        return self._edge_query(querystr)
+        return self._edge_query(querystr, cache_query=nodeid is None)
 
     @lru_cache(maxsize=128)
     def argument_edges(self,
@@ -512,7 +531,13 @@ class UDSGraph:
         """The edges between predicates and their arguments"""
 
         if nodeid is None:
-            querystr = ARGUMENT_EDGES_DEFAULT_QUERY
+            querystr = """
+                       SELECT ?e
+                       WHERE { ?n1 ?e ?n2 .
+                               ?e <domain> <semantics> .
+                               ?e <type> <dependency> .
+                             }
+                       """
 
         else:
             querystr = """
@@ -526,7 +551,7 @@ class UDSGraph:
                              }
                        """
 
-        return self._edge_query(querystr)
+        return self._edge_query(querystr, cache_query=nodeid is None)
 
     @lru_cache(maxsize=128)
     def argument_head_edges(self,
@@ -537,7 +562,13 @@ class UDSGraph:
         """The edges between nodes and their semantic heads"""
 
         if nodeid is None:
-            querystr = ARGUMENT_HEAD_EDGES_DEFAULT_QUERY
+            querystr = """
+                       SELECT ?e
+                       WHERE { ?n1 ?e ?n2 .
+                               ?e <domain> <semantics> .
+                               ?e <type> <head> .
+                             }
+                       """
 
         else:
             querystr = """
@@ -551,7 +582,7 @@ class UDSGraph:
                              }
                        """
 
-        return self._edge_query(querystr)
+        return self._edge_query(querystr, cache_query=nodeid is None)
 
     @lru_cache(maxsize=128)
     def syntax_edges(self,
@@ -560,7 +591,12 @@ class UDSGraph:
         """The edges between syntax nodes"""
 
         if nodeid is None:
-            querystr = SYNTAX_EDGES_DEFAULT_QUERY
+            querystr = """
+                       SELECT ?e
+                       WHERE { ?e <domain> <syntax> .
+                               ?e <type> <dependency> .
+                             }
+                       """
 
         else:
             querystr = """
@@ -574,7 +610,7 @@ class UDSGraph:
                              }
                        """
 
-        return self._edge_query(querystr)
+        return self._edge_query(querystr, cache_query=nodeid is None)
 
     @lru_cache(maxsize=128)
     def instance_edges(self,
@@ -601,7 +637,7 @@ class UDSGraph:
                              }
                        """
 
-        return self._edge_query(querystr)
+        return self._edge_query(querystr, cache_query=nodeid is None)
 
     def span(self,
              nodeid: str,
