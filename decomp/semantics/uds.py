@@ -262,8 +262,10 @@ class UDSGraph:
 
         self.nodes = self.graph.nodes
         self.edges = self.graph.edges
-
-        self._add_performative_nodes()
+        try:
+            self._add_performative_nodes()
+        except KeyError:
+            pass
 
     @memoized_property
     def rdf(self) -> Graph:

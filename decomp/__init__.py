@@ -9,5 +9,6 @@ basicConfig(filename=os.path.join(DATA_DIR, 'build.log'),
             level=DEBUG)
 
 from .semantics.uds import UDSCorpus
+from .vis.uds_vis import UDSVisualization, serve_parser
 
 uds = UDSCorpus()
