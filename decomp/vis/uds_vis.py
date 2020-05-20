@@ -27,6 +27,7 @@ class StringList:
     def __str__(self):
         return " ".join(self.text_list) 
 
+
 class UDSVisualization:
     def __init__(self,
                  graph: UDSGraph, 
