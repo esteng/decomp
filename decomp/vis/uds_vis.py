@@ -433,7 +433,8 @@ class UDSVisualization:
                 self.trace_list.append(semantics_node_trace)
         
     def _add_syntax_edges(self):
-        
+        print(self.graph.syntax_subgraph.nodes)
+        print(self.graph.syntax_subgraph.edges)
         for (node_0, node_1) in self.graph.syntax_subgraph.edges:
             try:
                 x0,y0,x1,y1 = self._get_xy_from_edge(node_0, node_1)
@@ -452,9 +453,9 @@ class UDSVisualization:
                                    opacity=1)
             self.trace_list.append(edge_trace)
             if x1 > x0:
-                direction = "left"
-            else:
                 direction = "right"
+            else:
+                direction = "left"
                 
             self._add_arrowhead((x1,y1), x0, x1, direction, color="blue")
 
@@ -690,9 +691,9 @@ class UDSVisualization:
                 setattr(vis, k, v)
         return vis
 
-def serve_parser(parser):
+def serve_parser(parser, with_syntax=False):
     graph = UDSCorpus(split="dev")['ewt-dev-1']
-    vis = UDSVisualization(graph, sentence = graph.sentence, from_prediction = False, add_syntax_edges=False)
+    vis = UDSVisualization(graph, sentence = graph.sentence, from_prediction = False, add_syntax_edges=with_syntax)
 
     vis_json = vis.toJSON() 
 
@@ -755,7 +756,7 @@ def serve_parser(parser):
             vis.graph = graph
             # update sentence 
             vis.sentence = StringList(text_value)
-            vis.add_syntax_edges = False
+            vis.add_syntax_edges = with_syntax
             vis.from_prediction = True
         return [vis.toJSON()]
 
