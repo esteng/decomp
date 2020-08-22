@@ -184,7 +184,6 @@ class UDSVisualization:
         
     def _get_attribute_str(self, node: str, is_node:bool=True) -> str:
         # format attribute string for hovering
-
         to_ret, pairs = [], []
         lens = []
         if is_node:
@@ -193,7 +192,6 @@ class UDSVisualization:
         else:
             onto = self.edge_ontology
             choose_from = self.graph.edges
-
             
         for attr in onto:
             try:
@@ -208,6 +206,10 @@ class UDSVisualization:
         if len(lens) > 0:
             max_len = max(lens)
             for i, (attr, val) in enumerate(pairs):
+                # don't try to display more than 20 at once 
+                if i > 15:
+                    to_ret.append("...") 
+                    break
                 line_len = lens[i]
                 n_spaces = max_len - line_len
                 to_ret.append(f"{attr}: {val}")
@@ -219,6 +221,7 @@ class UDSVisualization:
         return to_ret
     
     def _get_xy_from_edge(self, node_0, node_1):
+        # get the (x,y) coordinates of the endpoints of an edge
         try:
             x0,y0 = self.node_to_xy[node_0]
             x1,y1 = self.node_to_xy[node_1]
@@ -228,6 +231,7 @@ class UDSVisualization:
             return None
         
     def _select_direction(self, x0, x1):
+        # determine which way an arrowhead should face
         if x0 == x1:
             return "down"
         if x0 < x1: 
@@ -236,6 +240,7 @@ class UDSVisualization:
             return "down-left"
         
     def _make_label_node(self, x, y, hovertext, text, marker = None):
+        # make invisible nodes that hold labels 
         if marker is None:
             marker = {'size': 20, 'color': "LightGrey",
                        'opacity': 1.0}
@@ -249,6 +254,7 @@ class UDSVisualization:
         return text_node_trace
     
     def _get_prediction_node_head(self, node_0):
+        # different function needed for dealing with MISO predicted graphs
         outgoing_edges = [e for e in self.graph.edges if e[0] == node_0]
         try:
             head_edge = [e for e in outgoing_edges if self.graph.edges[e]['semrel'] == "head"]
@@ -433,11 +439,10 @@ class UDSVisualization:
                 self.trace_list.append(semantics_node_trace)
         
     def _add_syntax_edges(self):
-        print(self.graph.syntax_subgraph.nodes)
-        print(self.graph.syntax_subgraph.edges)
         for (node_0, node_1) in self.graph.syntax_subgraph.edges:
             try:
-                x0,y0,x1,y1 = self._get_xy_from_edge(node_0, node_1)
+                # swap order 
+                x0,y0,x1,y1 = self._get_xy_from_edge(node_1, node_0)
             except TypeError:
                 continue
             x_range, y_range, height = self._format_line((x0,y0), (x1,y1), radius = self.syntax_marker_size)
@@ -577,9 +582,7 @@ class UDSVisualization:
 
 
     def prepare_graph(self) -> Dict:
-        """
-        Convert a UDS graph into a Dash-ready layout
-        """
+        # Convert a UDS graph into a Dash-ready layout
         self._add_semantics_nodes()
         self._add_semantics_edges()
         
@@ -620,6 +623,7 @@ class UDSVisualization:
         self.edge_ontology = [x for x in self.edge_ontology_orig if x.split("-")[0] in subspaces] 
         
     def serve(self):
+        # serve graph to locally-hosted site 
         external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
         app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
         app.title = self.graph.name
@@ -655,31 +659,31 @@ class UDSVisualization:
         @app.callback(dash.dependencies.Output('my-graph', 'figure'),
                   [dash.dependencies.Input('subspace-list', 'value')])
         def update_output(value):
+            # update ontology based on which subspaces are checked 
             self._update_ontology(value)
             return self.prepare_graph()
-
 
         app.run_server(debug=False)
         
     def show(self):
+        # show in-browser, usuable in jupyter notebooks 
         figure = self.prepare_graph()
         fig = go.Figure(figure)
         fig.show()
 
     def toJSON(self):
+        # serialize visualization object, required for callback 
         self.sentence = str(self.sentence)
         graph = self.graph.to_dict()
         json_str = jsonpickle.encode(self, unpicklable=False)
         json_dict = jsonpickle.decode(json_str)
         json_dict['graph'] = graph
 
-        #json_graph = self.graph.to_dict()
-        #json_dict['graph'] = json_graph
         return jsonpickle.encode(json_dict)
-        #return json_str
 
     @classmethod
     def from_json(cls, data):
+        # load serialized visualization object 
         uds_graph = data['graph']
         miso_graph = UDSGraph.from_dict(uds_graph, 'test-graph') 
 
@@ -692,6 +696,7 @@ class UDSVisualization:
         return vis
 
 def serve_parser(parser, with_syntax=False):
+    # wrapper for serving from MISO parser 
     graph = UDSCorpus(split="dev")['ewt-dev-1']
     vis = UDSVisualization(graph, sentence = graph.sentence, from_prediction = False, add_syntax_edges=with_syntax)
 
